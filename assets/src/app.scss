@@ -1,0 +1,51 @@
+.app-tab-content {
+  font-size: 1rem;
+
+  .lead {
+    font-size: 1.1rem;
+  }
+}
+
+.app-suit-black {
+  color: #000000;
+}
+
+.app-suit-red {
+  color: #dc3545;
+}
+
+.app-suit-white {
+  color: #ffffff;
+}
+
+.app-w-3333 {
+  width: 33.33%;
+}
+
+.app-w-833 {
+  width: 8.33%;
+}
+
+.app-w-1666 {
+  width: 16.66%;
+}
+
+.app-draw-circle {
+  cursor: not-allowed;
+
+  &[data-playable='1'] {
+    cursor: pointer;
+  }
+}
+
+.app-game-log {
+  height: 180px;
+}
+
+#odds {
+  table {
+    td, th {
+      font-size: .9em;
+    }
+  }
+}

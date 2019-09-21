@@ -1,0 +1,12 @@
+/.idea
+/assets/dll
+/assets/node_modules
+/data/probability
+/public/app
+/public/vendor
+/test/temp
+/vendor
+composer.lock
+!/data/.gitkeep
+!/test/temp/.gitkeep
+!/assets/dll/.gitkeep

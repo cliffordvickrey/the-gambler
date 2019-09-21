@@ -1,0 +1,16 @@
+{
+  "compileOnSave": true,
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "outDir": "./temp/",
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "module": "es6",
+    "target": "es5",
+    "allowJs": true,
+    "lib": ["es2017", "dom"]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

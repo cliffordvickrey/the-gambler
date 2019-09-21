@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Draw Poker</title>
+    <link rel="stylesheet" href="../vendor/vendor.<%= htmlWebpackPlugin.options.vendorHash %>.css">
+</head>
+<body>
+<div id="app">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 mb-3">
+                <h1 class="d-inline pr-3">Draw Poker</h1>
+                <div id="app-spinner" class="text-info spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12" id="app-alert-container"></div>
+        </div>
+    </div>
+    <div class="container-fluid d-none" id="app-game-view">
+        <div class="form-row mb-3">
+            <div class="col-6">
+                <div class="container-fluid">
+                    <div class="form-row">
+                        <div class="col-8">
+                            <label class="sr-only" for="app-player-name">Player name</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text">Player Name</div>
+                                </div>
+                                <input minlength="1" maxlength="20" type="text" class="form-control"
+                                       data-input="player-name" id="app-player-name"/>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <button data-button="new-game" class="btn btn-success">New Game</button>
+                            <button data-button="resign" class="btn btn-danger">Resign</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="container-fluid">
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text">Purse</div>
+                                </div>
+                                <div data-doodad="purse" class="text-right form-control"></div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text">Score</div>
+                                </div>
+                                <div data-doodad="score" class="text-right form-control"></div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text">Efficiency</div>
+                                </div>
+                                <div data-doodad="efficiency" class="text-right form-control"></div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <div class="input-group-text">Luck</div>
+                                </div>
+                                <div data-doodad="luck" class="text-right form-control"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="app-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="rules-tab" data-toggle="tab" href="#rules" role="tab"
+                           aria-controls="rules"
+                           aria-selected="true">Rules</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="game-tab" data-toggle="tab" href="#game" role="tab"
+                           aria-controls="game">Game</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="odds-tab" data-toggle="tab" href="#odds" role="tab"
+                           aria-controls="odds">Odds</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="high-scores-tab" data-toggle="tab" href="#high-scores" role="tab"
+                           aria-controls="high-scores">High Scores</a>
+                    </li>
+                </ul>
+                <div class="tab-content app-tab-content">
+                    <!-- rules -->
+                    <div class="pt-3 tab-pane fade show active" id="rules" role="tabpanel" aria-labelledby="rules-tab">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-12">
+                                    <p class="lead">
+                                        Place a bet, get dealt a hand of five cards, choose which (if any) cards
+                                        to hold, and draw a new hand. Below are winning hands and their payout for <span
+                                                data-doodad="default-bet"></span> bets. If you get bored, click <span
+                                                class="font-italic">Cheat</span> to alter your hand, see the frequencies
+                                        and average payouts of every possible move, and get hints. Cheaters, though, are
+                                        ineligible for high scores.
+                                    </p>
+                                    <p class="lead">
+                                        <span class="font-weight-bold">Efficiency</span>: The percentage of the total
+                                        expected payouts of your moves relative to the expected payouts of the best
+                                        possible moves (100% if you gamble perfectly).
+                                    </p>
+                                    <p class="lead">
+                                        <span class="font-weight-bold">Luck</span>: Computed from the quality of the
+                                        dealt hands to the average hand, and the actual payouts of the moves compared to
+                                        the expected payouts.
+                                    </p>
+                                    <p class="lead">
+                                        <span class="font-weight-bold">Score</span>: Gambling efficiency &times; maximum
+                                        purse
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 offset-3">
+                                    <table class="table table-striped" data-table="rules">
+                                        <colgroup>
+                                            <col class="app-w-3333">
+                                            <col class="app-w-3333">
+                                            <col class="app-w-3333">
+                                        </colgroup>
+                                        <tr>
+                                            <th>Hand Type</th>
+                                            <th>Example</th>
+                                            <th>Payout</th>
+                                        </tr>
+                                        <tr>
+                                            <td>Royal Flush</td>
+                                            <td>
+                                                <span class="app-suit-black">10&spadesuit;</span>
+                                                <span class="app-suit-black">J&spadesuit;</span>
+                                                <span class="app-suit-black">Q&spadesuit;</span>
+                                                <span class="app-suit-black">K&spadesuit;</span>
+                                                <span class="app-suit-black">A&spadesuit;</span>
+                                            </td>
+                                            <td data-rules-payout="royalFlush"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Straight Flush</td>
+                                            <td>
+                                                <span class="app-suit-red">7&diamondsuit;</span>
+                                                <span class="app-suit-red">8&diamondsuit;</span>
+                                                <span class="app-suit-red">9&diamondsuit;</span>
+                                                <span class="app-suit-red">10&diamondsuit;</span>
+                                                <span class="app-suit-red">J&diamondsuit;</span>
+                                            </td>
+                                            <td data-rules-payout="straightFlush"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Four of a Kind</td>
+                                            <td>
+                                                <span class="app-suit-black">6&spadesuit;</span>
+                                                <span class="app-suit-red">6&diamondsuit;</span>
+                                                <span class="app-suit-red">6&heartsuit;</span>
+                                                <span class="app-suit-black">6&clubsuit;</span>
+                                                <span class="app-suit-red">3&diamondsuit;</span>
+                                            </td>
+                                            <td data-rules-payout="fourOfAKind"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Full House</td>
+                                            <td>
+                                                <span class="app-suit-black">6&spadesuit;</span>
+                                                <span class="app-suit-red">6&diamondsuit;</span>
+                                                <span class="app-suit-red">6&heartsuit;</span>
+                                                <span class="app-suit-black">4&spadesuit;</span>
+                                                <span class="app-suit-black">4&clubsuit;</span>
+                                            </td>
+                                            <td data-rules-payout="fullHouse"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Flush</td>
+                                            <td>
+                                                <span class="app-suit-red">A&heartsuit;</span>
+                                                <span class="app-suit-red">Q&heartsuit;</span>
+                                                <span class="app-suit-red">6&heartsuit;</span>
+                                                <span class="app-suit-red">2&heartsuit;</span>
+                                                <span class="app-suit-red">7&heartsuit;</span>
+                                            </td>
+                                            <td data-rules-payout="flush"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Straight</td>
+                                            <td>
+                                                <span class="app-suit-black">4&spadesuit;</span>
+                                                <span class="app-suit-black">5&spadesuit;</span>
+                                                <span class="app-suit-black">6&clubsuit;</span>
+                                                <span class="app-suit-black">7&clubsuit;</span>
+                                                <span class="app-suit-red">8&heartsuit;</span>
+                                            </td>
+                                            <td data-rules-payout="straight"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Three of a Kind</td>
+                                            <td>
+                                                <span class="app-suit-black">2&clubsuit;</span>
+                                                <span class="app-suit-red">2&diamondsuit;</span>
+                                                <span class="app-suit-red">2&heartsuit;</span>
+                                                <span class="app-suit-black">9&clubsuit;</span>
+                                                <span class="app-suit-red">3&diamondsuit;</span>
+                                            </td>
+                                            <td data-rules-payout="threeOfAKind"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Two Pair</td>
+                                            <td>
+                                                <span class="app-suit-black">10&clubsuit;</span>
+                                                <span class="app-suit-red">10&diamondsuit;</span>
+                                                <span class="app-suit-red">4&heartsuit;</span>
+                                                <span class="app-suit-red">4&diamondsuit;</span>
+                                                <span class="app-suit-black">9&spadesuit;</span>
+                                            </td>
+                                            <td data-rules-payout="twoPair"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Jacks or Better</td>
+                                            <td>
+                                                <span class="app-suit-black">J&spadesuit;</span>
+                                                <span class="app-suit-red">J&heartsuit;</span>
+                                                <span class="app-suit-red">8&diamondsuit;</span>
+                                                <span class="app-suit-black">4&clubsuit;</span>
+                                                <span class="app-suit-red">2&heartsuit;</span>
+                                            </td>
+                                            <td data-rules-payout="jacksOrBetter"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Bupkis</td>
+                                            <td>
+                                                <span class="app-suit-black">A&spadesuit;</span>
+                                                <span class="app-suit-red">2&diamondsuit;</span>
+                                                <span class="app-suit-black">6&clubsuit;</span>
+                                                <span class="app-suit-black">7&clubsuit;</span>
+                                                <span class="app-suit-red">7&heartsuit;</span>
+                                            </td>
+                                            <td data-rules-payout="nothing"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /rules -->
+                    <!-- game -->
+                    <div class="pt-3 tab-pane fade" id="game" role="tabpanel" aria-labelledby="game-tab">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-6 offset-3">
+                                    <div class="card w-100 mb-3">
+                                        <div class="card-body">
+                                            <div class="container-fluid">
+                                                <div class="row justify-content-center">
+                                                    <div class="col mx-1 text-center">
+                                                        <div data-card-offset="0"></div>
+                                                        <div>
+                                                            <span data-draw-offset="0"
+                                                                  class="far fa-circle app-draw-circle"></span>
+                                                        </div>
+                                                        <div class="btn-group" role="group">
+                                                            <button class="btn btn-light btn-sm"
+                                                                    data-increase-offset="0"><i
+                                                                        class="fas fa-chevron-up"></i></button>
+                                                            <button class="btn btn-light btn-sm"
+                                                                    data-decrease-offset="0"><i
+                                                                        class="fas fa-chevron-down"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col mx-1 text-center">
+                                                        <div data-card-offset="1"></div>
+                                                        <div>
+                                                            <span data-draw-offset="1"
+                                                                  class="far fa-circle app-draw-circle"></span>
+                                                        </div>
+                                                        <div class="btn-group" role="group">
+                                                            <button class="btn btn-light btn-sm"
+                                                                    data-increase-offset="1"><i
+                                                                        class="fas fa-chevron-up"></i></button>
+                                                            <button class="btn btn-light btn-sm"
+                                                                    data-decrease-offset="1"><i
+                                                                        class="fas fa-chevron-down"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col mx-1 text-center">
+                                                        <div data-card-offset="2"></div>
+                                                        <div>
+                                                            <span data-draw-offset="2"
+                                                                  class="far fa-circle app-draw-circle"></span>
+                                                        </div>
+                                                        <div class="btn-group" role="group">
+                                                            <button class="btn btn-light btn-sm"
+                                                                    data-increase-offset="2"><i
+                                                                        class="fas fa-chevron-up"></i></button>
+                                                            <button class="btn btn-light btn-sm"
+                                                                    data-decrease-offset="2"><i
+                                                                        class="fas fa-chevron-down"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col mx-1 text-center">
+                                                        <div data-card-offset="3"></div>
+                                                        <div>
+                                                            <span data-draw-offset="3"
+                                                                  class="far fa-circle app-draw-circle"></span>
+                                                        </div>
+                                                        <div class="btn-group" role="group">
+                                                            <button class="btn btn-light btn-sm"
+                                                                    data-increase-offset="3"><i
+                                                                        class="fas fa-chevron-up"></i></button>
+                                                            <button class="btn btn-light btn-sm"
+                                                                    data-decrease-offset="3"><i
+                                                                        class="fas fa-chevron-down"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col mx-1 text-center">
+                                                        <div data-card-offset="4"></div>
+                                                        <div>
+                                                            <span data-draw-offset="4"
+                                                                  class="far fa-circle app-draw-circle"></span>
+                                                        </div>
+                                                        <div class="btn-group" role="group">
+                                                            <button class="btn btn-light btn-sm"
+                                                                    data-increase-offset="4"><i
+                                                                        class="fas fa-chevron-up"></i></button>
+                                                            <button class="btn btn-light btn-sm"
+                                                                    data-decrease-offset="4"><i
+                                                                        class="fas fa-chevron-down"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row pb-3">
+                                <div class="col-6 offset-3 row">
+                                    <div class="container-fluid">
+                                        <div class="form-row justify-content-center">
+                                            <div class="col-3">
+                                                <label class="sr-only" for="app-amount">Amount</label>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text">Amount</div>
+                                                    </div>
+                                                    <input data-input="amount" id="app-amount" type="number"
+                                                           class="form-control"/>
+                                                </div>
+                                            </div>
+                                            <div class="col-5 text-right">
+                                                <button class="btn btn-primary" data-button="bet">
+                                                    <i class="fas fa-play"></i> Bet
+                                                </button>
+                                                <button class="btn btn-primary" data-button="draw">
+                                                    <i class="fas fa-play"></i> Draw
+                                                </button>
+                                                <button class="btn btn-warning" data-button="cheat">
+                                                    <i class="fas fa-smile-wink"></i> Cheat
+                                                </button>
+                                                <button class="btn btn-info" data-button="hint">
+                                                    <i class="fas fa-question-circle"></i> Hint
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 offset-3 row">
+                                    <p class="lead">Game Log</p>
+                                    <div class="overflow-auto w-100 bg-light app-game-log" id="app-game-log"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /game -->
+                    <!-- odds -->
+                    <div class="pt-3 tab-pane fade" id="odds" role="tabpanel" aria-labelledby="odds-tab">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-4">
+                                    <div class="form-group">
+                                        <label class="sr-only" for="app-frequencies-or-percentages">Display
+                                            Option</label>
+                                        <select data-display-mode-select="1" class="form-control"
+                                                id="app-frequencies-or-percentages" data-select="odds">
+                                            <option value="frequencies">Frequencies</option>
+                                            <option value="percentages" selected="selected">Percentages</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    Mean payouts are for <span data-doodad="default-bet"></span> bets
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <table data-table="frequencies"
+                                           class="table table-sm table-bordered table-striped d-none">
+                                        <colgroup>
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                        </colgroup>
+                                        <thead>
+                                        <tr>
+                                            <th class="text-center" data-odds-cell="cards">Cards Held</th>
+                                            <th class="text-center" data-odds-cell="nothing">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;A&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;6&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;7&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;7&heartsuit;&lt;/span&gt;">
+                                                    Nothing
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="jacksOrBetter">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;10&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;J&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;Q&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;K&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;A&spadesuit;&lt;/span&gt;">
+                                                    Jacks or Better
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="twoPair">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;10&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;10&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;4&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;4&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;9&spadesuit;&lt;/span&gt;">
+                                                    Two Pair
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="threeOfAKind">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;2&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;9&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;3&diamondsuit;&lt;/span&gt;">
+                                                    Three of a Kind
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="straight">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;4&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;5&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;6&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;7&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;8&heartsuit;&lt;/span&gt;">
+                                                    Straight
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="flush">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-red&quot;&gt;A&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;Q&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;7&heartsuit;&lt;/span&gt;">
+                                                    Flush
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="fullHouse">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;6&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;4&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;4&clubsuit;&lt;/span&gt;">
+                                                    Full House
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="fourOfAKind">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;6&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;6&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;3&diamondsuit;&lt;/span&gt;">
+                                                    Four of a Kind
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="straightFlush">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-red&quot;&gt;7&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;8&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;9&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;10&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;J&diamondsuit;&lt;/span&gt;">
+                                                    Straight Flush
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="royalFlush">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;10&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;J&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;Q&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;K&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;A&spadesuit;&lt;/span&gt;">
+                                                    Royal Flush
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="payout"><a href="#">Mean
+                                                    Payout</a></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr data-odds-draw="1">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="2">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="3">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="4">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="5">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="6">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="7">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="8">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="9">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="10">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="11">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="12">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="13">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="14">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="15">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="16">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="17">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="18">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="19">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="20">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="21">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="22">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="23">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="24">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="25">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="26">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="27">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="28">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="29">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="30">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="31">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="32">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                    <table data-table="percentages"
+                                           class="table table-sm table-bordered table-striped">
+                                        <colgroup>
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                            <col class="app-w-833">
+                                        </colgroup>
+                                        <thead>
+                                        <tr>
+                                            <th class="text-center" data-odds-cell="cards">Cards Held</th>
+                                            <th class="text-center" data-odds-cell="nothing">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;A&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;6&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;7&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;7&heartsuit;&lt;/span&gt;">
+                                                    Nothing
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="jacksOrBetter">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;10&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;J&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;Q&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;K&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;A&spadesuit;&lt;/span&gt;">
+                                                    Jacks or Better
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="twoPair">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;10&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;10&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;4&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;4&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;9&spadesuit;&lt;/span&gt;">
+                                                    Two Pair
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="threeOfAKind">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;2&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;9&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;3&diamondsuit;&lt;/span&gt;">
+                                                    Three of a Kind
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="straight">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;4&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;5&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;6&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;7&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;8&heartsuit;&lt;/span&gt;">
+                                                    Straight
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="flush">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-red&quot;&gt;A&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;Q&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;7&heartsuit;&lt;/span&gt;">
+                                                    Flush
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="fullHouse">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;6&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;4&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;4&clubsuit;&lt;/span&gt;">
+                                                    Full House
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="fourOfAKind">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;6&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;6&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;3&diamondsuit;&lt;/span&gt;">
+                                                    Four of a Kind
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="straightFlush">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-red&quot;&gt;7&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;8&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;9&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;10&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;J&diamondsuit;&lt;/span&gt;">
+                                                    Straight Flush
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="royalFlush">
+                                                <a href="#" data-toggle="tooltip" data-placement="top" data-html="true"
+                                                   title="&lt;span class=&quot;app-suit-white&quot;&gt;10&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;J&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;Q&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;K&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;A&spadesuit;&lt;/span&gt;">
+                                                    Royal Flush
+                                                </a>
+                                            </th>
+                                            <th class="text-center" data-odds-cell="payout"><a href="#">Mean
+                                                    Payout</a></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr data-odds-draw="1">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="2">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="3">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="4">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="5">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="6">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="7">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="8">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="9">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="10">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="11">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="12">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="13">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="14">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="15">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="16">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="17">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="18">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="19">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="20">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="21">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="22">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="23">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="24">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="25">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="26">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="27">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="28">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="29">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="30">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="31">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        <tr data-odds-draw="32">
+                                            <td data-odds-cell="cards"></td>
+                                            <td class="text-right" data-odds-cell="nothing"></td>
+                                            <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                            <td class="text-right" data-odds-cell="twoPair"></td>
+                                            <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straight"></td>
+                                            <td class="text-right" data-odds-cell="flush"></td>
+                                            <td class="text-right" data-odds-cell="fullHouse"></td>
+                                            <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                            <td class="text-right" data-odds-cell="straightFlush"></td>
+                                            <td class="text-right" data-odds-cell="royalFlush"></td>
+                                            <td class="text-right" data-odds-cell="payout"></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /odds -->
+                    <!-- high score -->
+                    <div class="pt-3 tab-pane fade" id="high-scores" role="tabpanel" aria-labelledby="high-scores-tab">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card m-3">
+                                        <div class="card-body">
+                                            Your rank is <span class="text-info font-weight-bold"
+                                                               data-doodad="rank"></span>. Your gambler rating is <span
+                                                    class="text-info font-weight-bold" data-doodad="rating"></span>.
+                                        </div>
+                                    </div>
+                                    <table data-table="high-scores" class="table table-striped">
+                                        <colgroup>
+                                            <col class="app-w-1666">
+                                            <col class="app-w-1666">
+                                            <col class="app-w-1666">
+                                            <col class="app-w-1666">
+                                            <col class="app-w-1666">
+                                            <col class="app-w-1666">
+                                            <col class="app-w-1666">
+                                        </colgroup>
+                                        <tr>
+                                            <th class="text-center" >Player</th>
+                                            <th class="text-center" >Date</th>
+                                            <th class="text-center" >Efficiency</th>
+                                            <th class="text-center" >Luck</th>
+                                            <th class="text-center" >Maximum Purse</th>
+                                            <th class="text-center" >Score</th>
+                                        </tr>
+                                        <tr data-high-scores-rank="1">
+                                            <td class="text-center" data-high-scores-cell="player"></td>
+                                            <td class="text-center" data-high-scores-cell="date"></td>
+                                            <td class="text-center" data-high-scores-cell="efficiency"></td>
+                                            <td class="text-center" data-high-scores-cell="luck"></td>
+                                            <td class="text-center" data-high-scores-cell="maximum-purse"></td>
+                                            <td class="text-center" data-high-scores-cell="score"></td>
+                                        </tr>
+                                        <tr data-high-scores-rank="2">
+                                            <td class="text-center" data-high-scores-cell="player"></td>
+                                            <td class="text-center" data-high-scores-cell="date"></td>
+                                            <td class="text-center" data-high-scores-cell="efficiency"></td>
+                                            <td class="text-center" data-high-scores-cell="luck"></td>
+                                            <td class="text-center" data-high-scores-cell="maximum-purse"></td>
+                                            <td class="text-center" data-high-scores-cell="score"></td>
+                                        </tr>
+                                        <tr data-high-scores-rank="3">
+                                            <td class="text-center" data-high-scores-cell="player"></td>
+                                            <td class="text-center" data-high-scores-cell="date"></td>
+                                            <td class="text-center" data-high-scores-cell="efficiency"></td>
+                                            <td class="text-center" data-high-scores-cell="luck"></td>
+                                            <td class="text-center" data-high-scores-cell="maximum-purse"></td>
+                                            <td class="text-center" data-high-scores-cell="score"></td>
+                                        </tr>
+                                        <tr data-high-scores-rank="4">
+                                            <td class="text-center" data-high-scores-cell="player"></td>
+                                            <td class="text-center" data-high-scores-cell="date"></td>
+                                            <td class="text-center" data-high-scores-cell="efficiency"></td>
+                                            <td class="text-center" data-high-scores-cell="luck"></td>
+                                            <td class="text-center" data-high-scores-cell="maximum-purse"></td>
+                                            <td class="text-center" data-high-scores-cell="score"></td>
+                                        </tr>
+                                        <tr data-high-scores-rank="5">
+                                            <td class="text-center" data-high-scores-cell="player"></td>
+                                            <td class="text-center" data-high-scores-cell="date"></td>
+                                            <td class="text-center" data-high-scores-cell="efficiency"></td>
+                                            <td class="text-center" data-high-scores-cell="luck"></td>
+                                            <td class="text-center" data-high-scores-cell="maximum-purse"></td>
+                                            <td class="text-center" data-high-scores-cell="score"></td>
+                                        </tr>
+                                        <tr data-high-scores-rank="6">
+                                            <td class="text-center" data-high-scores-cell="player"></td>
+                                            <td class="text-center" data-high-scores-cell="date"></td>
+                                            <td class="text-center" data-high-scores-cell="efficiency"></td>
+                                            <td class="text-center" data-high-scores-cell="luck"></td>
+                                            <td class="text-center" data-high-scores-cell="maximum-purse"></td>
+                                            <td class="text-center" data-high-scores-cell="score"></td>
+                                        </tr>
+                                        <tr data-high-scores-rank="7">
+                                            <td class="text-center" data-high-scores-cell="player"></td>
+                                            <td class="text-center" data-high-scores-cell="date"></td>
+                                            <td class="text-center" data-high-scores-cell="efficiency"></td>
+                                            <td class="text-center" data-high-scores-cell="luck"></td>
+                                            <td class="text-center" data-high-scores-cell="maximum-purse"></td>
+                                            <td class="text-center" data-high-scores-cell="score"></td>
+                                        </tr>
+                                        <tr data-high-scores-rank="8">
+                                            <td class="text-center" data-high-scores-cell="player"></td>
+                                            <td class="text-center" data-high-scores-cell="date"></td>
+                                            <td class="text-center" data-high-scores-cell="efficiency"></td>
+                                            <td class="text-center" data-high-scores-cell="luck"></td>
+                                            <td class="text-center" data-high-scores-cell="maximum-purse"></td>
+                                            <td class="text-center" data-high-scores-cell="score"></td>
+                                        </tr>
+                                        <tr data-high-scores-rank="9">
+                                            <td class="text-center" data-high-scores-cell="player"></td>
+                                            <td class="text-center" data-high-scores-cell="date"></td>
+                                            <td class="text-center" data-high-scores-cell="efficiency"></td>
+                                            <td class="text-center" data-high-scores-cell="luck"></td>
+                                            <td class="text-center" data-high-scores-cell="maximum-purse"></td>
+                                            <td class="text-center" data-high-scores-cell="score"></td>
+                                        </tr>
+                                        <tr data-high-scores-rank="10">
+                                            <td class="text-center" data-high-scores-cell="player"></td>
+                                            <td class="text-center" data-high-scores-cell="date"></td>
+                                            <td class="text-center" data-high-scores-cell="efficiency"></td>
+                                            <td class="text-center" data-high-scores-cell="luck"></td>
+                                            <td class="text-center" data-high-scores-cell="maximum-purse"></td>
+                                            <td class="text-center" data-high-scores-cell="score"></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /high score -->
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <footer class="text-center py-3">
+                    Copyright &copy; 2019 <a href="http://www.cliffordvickrey.com">Clifford Vickrey</a> in partnership
+                    with Ramsey Sports and Outdoor
+                </footer>
+            </div>
+        </div>
+    </div>
+    <div class="modal" tabindex="-1" role="dialog" data-confirmation="cheat">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cheat</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to cheat? You will no longer be added to the high scores.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">Yes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" tabindex="-1" role="dialog" data-confirmation="resign">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Resign</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to resign?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary">Yes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="../vendor/vendor.<%= htmlWebpackPlugin.options.vendorHash %>.js"></script>
+</body>
+</html>
