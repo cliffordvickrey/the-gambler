@@ -25,11 +25,17 @@ const webPackPromise = new Promise((resolve, reject) => {
                 extensions: [".ts", ".js"],
                 modules: [path.resolve(__dirname, "./node_modules")]
             },
-            mode: "development",
+            mode: "production",
             entry: {
                 app: ["./src/vendor.js", "./src/app.ts"]
             },
             plugins: [
+                new webpack.ProvidePlugin({
+                    $: "jquery",
+                    jQuery: "jquery",
+                    "window.jQuery": "jquery",
+                    Promise: "bluebird"
+                }),
                 new HardSourceWebpackPlugin(),
                 new HTMLWebpackPlugin({
                     vendorHash: vendorHash,
@@ -107,9 +113,9 @@ const webPackPromise = new Promise((resolve, reject) => {
                     }
                 ]
             },
-//            optimization: {
-//                minimizer: [new TerserWebpackPlugin()]
-//            }
+            optimization: {
+                minimizer: [new TerserWebpackPlugin()]
+            }
         });
     })
 });

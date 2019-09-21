@@ -8,6 +8,7 @@ import {GameUtil} from "../domain/GameUtil";
 import {SortDirection} from "./SortDirection";
 import {HighScores} from "../domain/HighScores";
 import {HighScore} from "../domain/HighScore";
+import {log} from "util";
 
 declare let $: JQueryStatic;
 
@@ -37,7 +38,9 @@ export class ViewModel {
         }
 
         let defaultBetElements = this.dom.getDoodads("default-bet");
-        defaultBetElements.forEach((element: HTMLElement) => element.innerText = rules.betAmount);
+        for (let i = 0; i < defaultBetElements.length; i++) {
+            defaultBetElements.item(i).innerText = rules.betAmount;
+        }
 
         this.dom.getInput("amount").value = rules.betAmount.replace(/^\$/g, "").replace(/\.00$/g, "");
     }
@@ -242,7 +245,13 @@ export class ViewModel {
             logEntry = <HTMLDivElement>document.createElement("div");
             logEntry.setAttribute("data-log", "1");
             logEntry.setAttribute("data-log-id", String(logId));
-            gameLog.prepend(logEntry);
+
+            let childNodes = gameLog.childNodes;
+            if (childNodes.length > 0) {
+                gameLog.insertBefore(logEntry, childNodes[0]);
+            } else {
+                gameLog.appendChild(logEntry);
+            }
         }
 
         logEntry.innerHTML = '<span class="font-weight-bold">Turn ' + String(logId) + ":</span> "

@@ -6,10 +6,11 @@ import {ImageFlyweightFactory} from "./infrastructure/ImageFlyweightFactory";
 import {Observable} from "./infrastructure/Observable";
 import {Observer} from "./infrastructure/Observer";
 import {EventBinder} from "./infrastructure/EventBinder";
+import {AppConfig} from "./config/AppConfig";
 
 require("./app.scss");
 
-const api = new Api();
+const api = new Api(AppConfig.apiRoot);
 const dom = new Dom();
 const imageFlyweightFactory = new ImageFlyweightFactory();
 const viewModel = new ViewModel(dom, imageFlyweightFactory);

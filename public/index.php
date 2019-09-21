@@ -5,42 +5,56 @@ declare(strict_types=1);
 use Cliffordvickrey\TheGambler\Api\Response\JsonResponse;
 use Cliffordvickrey\TheGambler\Api\ResponseEmitter\ResponseEmitter;
 use Fig\Http\Message\StatusCodeInterface;
-use Slim\Exception\HttpMethodNotAllowedException;
-use Slim\Exception\HttpNotFoundException;
+use Slim\Exception\HttpSpecializedException;
 use Slim\Factory\AppFactory;
 use Slim\Factory\ServerRequestCreatorFactory;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 call_user_func(function () {
-    // Build PHP-DI Container instance
+    // build PHP-DI Container instance
     $container = require __DIR__ . '/../app/container.php';
 
-    // Instantiate the app
+    // get the config
+    $config = $container->get('config');
+
+    // instantiate the app
     AppFactory::setContainer($container);
     $app = AppFactory::create();
 
-    // Register middleware
+    // route caching
+    if ($config['production']) {
+        $routeCollector = $app->getRouteCollector();
+        $routeCollector->setCacheFile(__DIR__ . '/../data/route-cache.php');
+    }
+
+    // register middleware
     $middleware = require __DIR__ . '/../app/pipeline.php';
     $middleware($app);
 
-    // Register routes
+    // register routes
     $routes = require __DIR__ . '/../app/routes.php';
     $routes($app);
 
-    // Create Request object from globals
+    // create Request object from globals
     $serverRequestCreator = ServerRequestCreatorFactory::create();
     $request = $serverRequestCreator->createServerRequestFromGlobals();
 
-    // Add Routing Middleware
+    // add routing middleware
     $app->addRoutingMiddleware();
 
-    // Run App & Emit Response
+    // run app & emit Response
     try {
         $response = $app->handle($request);
     } catch (Throwable $e) {
-        if ($e instanceof HttpNotFoundException | $e instanceof HttpMethodNotAllowedException) {
-            $response = new JsonResponse(['errorMessage' => '404 Not Found'], StatusCodeInterface::STATUS_NOT_FOUND);
+        // handle all exceptions that ErrorHandlingMiddleware misses
+        if ($e instanceof HttpSpecializedException) {
+            $response = new JsonResponse(['errorMessage' => $e->getMessage()], $e->getCode());
+        } elseif (!$config['debug']) {
+            $response = new JsonResponse(
+                ['errorMessage' => 'There was an internal server error'],
+                StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR
+            );
         } else {
             throw $e;
         }

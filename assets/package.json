@@ -10,14 +10,18 @@
   },
   "author": "Clifford Vickrey",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cliffordvickrey/the-gambler.git"
+  },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.10.2",
     "@types/bootstrap": "^4.3.1",
     "@types/jquery": "^3.3.31",
+    "bluebird": "^3.5.5",
     "bootstrap": "^4.3.1",
     "jquery": "^3.4.1",
-    "popper.js": "^1.15.0",
-    "save-dev": "^2.0.0"
+    "popper.js": "^1.15.0"
   },
   "devDependencies": {
     "@types/node": "^12.7.5",

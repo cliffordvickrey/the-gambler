@@ -1,5 +1,4 @@
-"use strict";
-
+require("bluebird");
 require("jquery");
 require("popper.js");
 require("bootstrap");

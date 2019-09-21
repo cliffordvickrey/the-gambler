@@ -39,7 +39,6 @@ class ErrorHandlingMiddleware implements MiddlewareInterface
                 $errorMessage = 'There was an internal server error';
             }
 
-//            echo (string)$e; exit();
             $statusCode = StatusCodeInterface::STATUS_INTERNAL_SERVER_ERROR;
             $response = new JsonResponse(['errorMessage' => $errorMessage], $statusCode);
         }

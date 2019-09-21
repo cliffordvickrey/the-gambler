@@ -98,12 +98,9 @@ export class EventBinder {
             this.observable.notify(EventType.oddsSelect, {selected: oddsSelect.value});
         });
 
-        let cardViews: CardView[] = [];
         for (let i = 0; i < 5; i++) {
-            cardViews.push(this.dom.getCardView(i));
-        }
+            let cardView = this.dom.getCardView(i);
 
-        cardViews.forEach((cardView: CardView) => {
             cardView.draw.addEventListener("click", () => {
                 let target = cardView.draw;
                 let playable = "1" === target.getAttribute("data-playable");
@@ -134,7 +131,7 @@ export class EventBinder {
                     {gameId: this.viewModel.game.gameId, offset: offset, card: nextCard}
                 );
             });
-        });
+        }
 
         let oddsView = this.dom.getOddsView();
         Object.keys(oddsView).forEach((tableName: string) => {

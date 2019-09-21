@@ -122,5 +122,9 @@ return (function () {
         }
     ]);
 
+    if ($config['production']) {
+        $containerBuilder->enableCompilation(__DIR__ . '/../data');
+    }
+
     return $containerBuilder->build();
 })();
