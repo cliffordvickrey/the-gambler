@@ -156,7 +156,7 @@ export class EventBinder {
                         this.observable.notify(EventType.oddsSort, {
                             column: sortColumn, direction: sortDirection
                         });
-                        e.stopPropagation();
+                        e.preventDefault();
                         return false;
                     });
                 }
