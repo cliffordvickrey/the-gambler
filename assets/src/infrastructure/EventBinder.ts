@@ -94,7 +94,7 @@ export class EventBinder {
         });
 
         let oddsSelect = this.dom.getSelect("odds");
-        oddsSelect.addEventListener("click", () => {
+        oddsSelect.addEventListener("change", () => {
             this.observable.notify(EventType.oddsSelect, {selected: oddsSelect.value});
         });
 
