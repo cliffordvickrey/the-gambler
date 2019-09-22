@@ -472,6 +472,7 @@ export class ViewModel {
 
             let playable = readyToPlay && 0 !== cardId;
             cardView.draw.setAttribute("data-playable", playable ? "1" : "0");
+            cardView.card.setAttribute("data-playable", playable ? "1" : "0");
             let held = cardView.draw.classList.contains("fas");
 
             if (readyToPlay && held) {

@@ -34,7 +34,7 @@
   width: 16.66%;
 }
 
-.app-draw-circle {
+.app-draw-circle, .app-card {
   cursor: not-allowed;
 
   &[data-playable='1'] {

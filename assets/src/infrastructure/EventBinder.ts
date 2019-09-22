@@ -112,6 +112,10 @@ export class EventBinder {
                 this.observable.notify(EventType.holdCard, {offset: offset});
             });
 
+            cardView.card.addEventListener("click", () => {
+                cardView.draw.click();
+            });
+
             cardView.increase.addEventListener("click", () => {
                 let target = cardView.increase;
                 let offset = parseInt(target.getAttribute("data-increase-offset"), 10);
