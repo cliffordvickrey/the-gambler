@@ -16,8 +16,7 @@ export class Network {
              * Modern browsers: use the nice async Fetch API
              */
             if ("fetch" in window) {
-                let request = new Request(url, {method: method});
-
+                let request = new Request(url, {method: method, credentials: "include"});
                 fetch(request).then(
                     (response) => {
                         response.json().then(data => {
@@ -36,7 +35,7 @@ export class Network {
             /**
              * IE <= 11: time to party like it's 2009
              */
-            $.ajax({url: url, method: method}).done(
+            $.ajax({url: url, method: method, xhrFields: {withCredentials: true}}).done(
                 data => resolve(data)
             ).fail((jqXhr: JQueryXHR) => {
                 reject(Network.getError(jqXhr.responseJSON));
