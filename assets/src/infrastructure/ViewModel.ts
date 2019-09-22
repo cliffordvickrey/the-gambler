@@ -209,7 +209,7 @@ export class ViewModel {
             this.oddsAreStale = true;
         }
 
-        this.dom.enableTab("odds", meta.cheated);
+        this.dom.enableTab("odds", meta.cheated && hasHand);
 
         let input = this.dom.getInput("amount");
 
