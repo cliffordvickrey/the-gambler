@@ -1,5 +1,6 @@
 export enum EventType {
     authenticate = "authenticate",
+    autopilot = "autopilot",
     bet = "bet",
     cheat = "cheat",
     draw = "draw",

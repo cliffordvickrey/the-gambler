@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description"
+          content="Pointless but inscrutably entertaining video poker web application. Sorry: no actual money or free drinks">
+    <meta name="author" content="Clifford Vickrey">
     <title>Draw Poker</title>
     <link rel="stylesheet" href="../vendor/vendor.<%= htmlWebpackPlugin.options.vendorHash %>.css">
     <script type="text/javascript" src="../vendor/vendor.<%= htmlWebpackPlugin.options.vendorHash %>.js"></script>
@@ -102,7 +105,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" id="high-scores-tab" data-toggle="tab" href="#high-scores" role="tab"
-                           aria-controls="high-scores">High Scores</a>
+                           aria-controls="high-scores">Scores</a>
                     </li>
                 </ul>
                 <div class="tab-content app-tab-content">
@@ -116,8 +119,8 @@
                                         to hold, and draw a new hand. Below are winning hands and their payout for <span
                                                 data-doodad="default-bet"></span> bets. If you get bored, click <span
                                                 class="font-italic">Cheat</span> to alter your hand, see the frequencies
-                                        and average payouts of every possible move, and get hints. Cheaters, though, are
-                                        ineligible for high scores.
+                                        and average payouts of every possible move, get hints, and run the game in
+                                        autopilot mode. Cheaters, though, are ineligible for high scores.
                                     </p>
                                     <p class="lead">
                                         <span class="font-weight-bold">Efficiency</span>: The percentage of the total
@@ -370,18 +373,30 @@
                                                            class="form-control"/>
                                                 </div>
                                             </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="col-6 text-right pt-3 col-lg-3 offset-lg-3">
+                                                <button class="w-100 btn btn-primary" data-button="bet">
+                                                    <i class="fas fa-dice"></i> Bet
+                                                </button>
+                                                <button class="w-100 btn btn-primary" data-button="draw">
+                                                    <i class="fas fa-random"></i> Draw
+                                                </button>
+                                            </div>
+                                            <div class="col-6 col-lg-3 text-left pt-3">
+                                                <div data-doodad="result" id="app-result" class="form-control"></div>
+                                            </div>
+                                        </div>
+                                        <div class="form-row justify-content-center">
                                             <div class="col-12 text-center pt-3">
-                                                <button class="btn btn-primary" data-button="bet">
-                                                    <i class="fas fa-play"></i> Bet
-                                                </button>
-                                                <button class="btn btn-primary" data-button="draw">
-                                                    <i class="fas fa-play"></i> Draw
-                                                </button>
-                                                <button class="btn btn-warning" data-button="cheat">
+                                                <button class="btn-sm btn btn-warning" data-button="cheat">
                                                     <i class="fas fa-smile-wink"></i> Cheat
                                                 </button>
-                                                <button class="btn btn-info" data-button="hint">
+                                                <button class="btn-sm btn btn-info" data-button="hint">
                                                     <i class="fas fa-question-circle"></i> Hint
+                                                </button>
+                                                <button class="btn-sm btn btn-secondary" data-button="autopilot">
+                                                    <i class="fas fa-play"></i> Autopilot
                                                 </button>
                                             </div>
                                         </div>
@@ -401,18 +416,18 @@
                     <div class="pt-3 tab-pane fade" id="odds" role="tabpanel" aria-labelledby="odds-tab">
                         <div class="container-fluid">
                             <div class="row">
-                                <div class="col-4">
+                                <div class="col-12 col-lg-4">
                                     <div class="form-group">
                                         <label class="sr-only" for="app-frequencies-or-percentages">Display
                                             Option</label>
-                                        <select data-display-mode-select="1" class="form-control"
-                                                id="app-frequencies-or-percentages" data-select="odds">
+                                        <select class="form-control" id="app-frequencies-or-percentages"
+                                                data-select="odds">
                                             <option value="frequencies">Frequencies</option>
                                             <option value="percentages" selected="selected">Percentages</option>
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-12 col-lg-6 pb-3 pb-lg-0">
                                     Mean payouts are for <span data-doodad="default-bet"></span> bets
                                 </div>
                             </div>

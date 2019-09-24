@@ -2,7 +2,6 @@ import {ObserverInterface} from "./ObserverInterface";
 import {EventType} from "./EventType";
 import {ViewModel} from "./ViewModel";
 import {Dom} from "./Dom";
-import {CardView} from "./CardView";
 import {SortDirection} from "./SortDirection";
 
 export class EventBinder {
@@ -20,11 +19,6 @@ export class EventBinder {
         $('[data-toggle="tooltip"]').tooltip();
 
         $("a[data-toggle='tab']").on("hide.bs.tab", (e: any) => {
-            if (this.observable.isBusy()) {
-                (<Event>e).stopPropagation();
-                return false;
-            }
-
             let relatedTarget: HTMLAnchorElement = <HTMLAnchorElement>e.relatedTarget;
             let regEx = /#(.*)$/g;
             let matches = regEx.exec(relatedTarget.href);
@@ -91,6 +85,10 @@ export class EventBinder {
                     this.observable.notify(EventType.resign, {gameId: this.viewModel.game.gameId});
                 }
             });
+        });
+
+        this.dom.getButton("autopilot").addEventListener("click", () => {
+            this.observable.notify(EventType.autopilot);
         });
 
         let oddsSelect = this.dom.getSelect("odds");

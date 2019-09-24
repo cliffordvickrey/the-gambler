@@ -7,6 +7,7 @@ import {HighScores} from "../domain/HighScores";
 
 export class Observer implements ObserverInterface {
     private busy: boolean = false;
+    private autoPilot: boolean = false;
     private readonly api: Api;
     private readonly viewModel: ViewModel;
 
@@ -16,10 +17,18 @@ export class Observer implements ObserverInterface {
     }
 
     public notify(event: EventType, params?: any): void {
-        if (this.busy) {
+        if (this.busy && !this.autoPilot) {
             return;
         }
 
+        if (!(event === EventType.autopilot
+            || event === EventType.hint
+            || event === EventType.bet
+            || event === EventType.draw)) {
+            this.setAutopilot(false);
+        }
+
+        this.busy = true;
         this.viewModel.showSpinner(true);
 
         this.dispatch(event, params).then(
@@ -31,13 +40,75 @@ export class Observer implements ObserverInterface {
             (err: Error) => {
                 this.viewModel.showSpinner(false);
                 this.busy = false;
-                this.viewModel.alert(err.message, "danger")
+                this.viewModel.alert(err.message, "danger");
+                this.setAutopilot(false);
             }
         );
     }
 
-    private dispatch(event: EventType, params: any): Promise<void>
-    {
+    public isBusy(): boolean {
+        return this.busy;
+    }
+
+    private setAutopilot(autoPilot: boolean): void {
+        this.autoPilot = autoPilot;
+        this.viewModel.setAutopilot(autoPilot);
+
+        if (!autoPilot) {
+            return;
+        }
+
+        this.viewModel.resetDefaultBetAmount();
+
+        new Promise((resolve, reject) => {
+            let game = this.viewModel.game;
+            let doHint = null !== game.state.hand && null === game.state.handType;
+
+            if (doHint) {
+                let hintParams = {cardsHeld: [...this.viewModel.game.probability.highDraw]};
+                this.dispatch(EventType.hint, hintParams).then(
+                    () => {
+                        if (!this.autoPilot) {
+                            resolve();
+                            return;
+                        }
+
+                        setTimeout(() => {
+                            if (!this.autoPilot) {
+                                resolve();
+                                return;
+                            }
+
+                            let drawParams = {gameId: game.gameId, draw: this.viewModel.getDrawId()};
+                            this.dispatch(EventType.draw, drawParams).then(
+                                () => resolve(),
+                                (err: Error) => reject(err)
+                            );
+                        }, 1000);
+                    },
+                    (err: Error) => reject(err)
+                );
+            } else {
+                let betParams = {gameId: game.gameId, amount: this.viewModel.defaultBetAmount};
+                this.dispatch(EventType.bet, betParams).then(
+                    () => resolve(),
+                    (err: Error) => reject(err)
+                );
+            }
+        }).then(
+            () => setTimeout(() => {
+                this.notify(EventType.autopilot, {autopilot: this.autoPilot})
+            }, 1500),
+            (err: Error) => {
+                this.viewModel.showSpinner(false);
+                this.busy = false;
+                this.viewModel.alert(err.message, "danger");
+                this.setAutopilot(false);
+            }
+        );
+    }
+
+    private dispatch(event: EventType, params: any): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             switch (event) {
                 case EventType.authenticate:
@@ -45,6 +116,10 @@ export class Observer implements ObserverInterface {
                         () => resolve(),
                         (err) => reject(err)
                     );
+                    return;
+                case EventType.autopilot:
+                    this.setAutopilot(null === params ? !this.autoPilot : params.autopilot);
+                    resolve();
                     return;
                 case EventType.bet:
                     this.bet(params.gameId, params.amount).then(
@@ -202,6 +277,7 @@ export class Observer implements ObserverInterface {
                     this.api.newGame().then(
                         (httpResponse) => {
                             this.viewModel.setGame(httpResponse.game);
+                            this.viewModel.showTab("game");
                             resolve();
                         },
                         (err) => reject(err)
@@ -210,9 +286,5 @@ export class Observer implements ObserverInterface {
                 (err) => reject(err)
             );
         });
-    }
-
-    public isBusy(): boolean {
-        return this.busy;
     }
 }

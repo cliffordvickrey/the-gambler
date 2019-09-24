@@ -8,12 +8,12 @@ import {GameUtil} from "../domain/GameUtil";
 import {SortDirection} from "./SortDirection";
 import {HighScores} from "../domain/HighScores";
 import {HighScore} from "../domain/HighScore";
-import {log} from "util";
 
 declare let $: JQueryStatic;
 
 export class ViewModel {
     public game: Game = null;
+    public defaultBetAmount: number;
     private readonly dom: Dom;
     private readonly imageFlyweightFactory: ImageFlyweightFactory;
     private cardsHeld: boolean[] = [false, false, false, false, false];
@@ -31,6 +31,31 @@ export class ViewModel {
         return temp.innerHTML;
     }
 
+    public setAutopilot(autopilot: boolean): void {
+        let autopilotButton = this.dom.getButton("autopilot");
+        let autopilotAlreadyOn = autopilotButton.classList.contains("btn-danger");
+
+        if (autopilotAlreadyOn === autopilot) {
+            return;
+        }
+
+        let icon = autopilotButton.querySelector("i");
+
+        if (autopilot) {
+            icon.classList.remove("fa-play");
+            icon.classList.add("fa-stop");
+            autopilotButton.classList.remove("btn-secondary");
+            autopilotButton.classList.add("btn-danger");
+            return;
+        }
+
+        icon.classList.remove("fa-stop");
+        icon.classList.add("fa-play");
+        autopilotButton.classList.remove("btn-danger");
+        autopilotButton.classList.add("btn-secondary");
+
+    }
+
     public setRules(rules: RulesInterface): void {
         for (let handType in rules.handPayouts) {
             let rulesPayoutCell = this.dom.getRulesPayoutCell(handType);
@@ -42,7 +67,13 @@ export class ViewModel {
             defaultBetElements.item(i).innerText = rules.betAmount;
         }
 
-        this.dom.getInput("amount").value = rules.betAmount.replace(/^\$/g, "").replace(/\.00$/g, "");
+        this.defaultBetAmount = parseInt(rules.betAmount.replace(/^\$/g, "").replace(/\.00$/g, ""), 10);
+        this.resetDefaultBetAmount();
+    }
+
+    public resetDefaultBetAmount(): void
+    {
+        this.dom.getInput("amount").value = String(this.defaultBetAmount);
     }
 
     public showTab(tabName: string): void {
@@ -181,6 +212,7 @@ export class ViewModel {
             gameLog.innerHTML = "";
             this.dom.enableTab("odds", false);
             this.setMeta(null);
+            this.resetDefaultBetAmount();
             return;
         }
 
@@ -196,7 +228,9 @@ export class ViewModel {
             hasHand = true;
         }
 
-        let readyToBet = !hasHand || null !== state.handType;
+        let turnComplete = null !== state.handType;
+        let readyToBet = !hasHand || turnComplete;
+
         this.setHand(hand, state.cardsHeld, state.cardsDealt, meta.cheated);
         this.setMeta(meta);
 
@@ -204,6 +238,7 @@ export class ViewModel {
         this.dom.showButton("draw", !readyToBet && hasHand);
         this.dom.enableButton("cheat", !meta.cheated);
         this.dom.enableButton("hint", meta.cheated && !readyToBet && hasHand);
+        this.dom.enableButton("autopilot", meta.cheated);
 
         if (!readyToBet && hasHand) {
             this.oddsAreStale = true;
@@ -263,7 +298,20 @@ export class ViewModel {
             lastEntry.parentElement.removeChild(lastEntry);
         }
 
-        this.showTab("game");
+        let result = <HTMLDivElement>this.dom.getDoodad("result");
+        result.innerHTML = "";
+        let resultSpan = <HTMLSpanElement>document.createElement("span");
+
+        if (hasHand && !turnComplete) {
+            resultSpan.className = "text-danger";
+            resultSpan.textContent = "-" + game.state.betAmount;
+            result.appendChild(resultSpan);
+        } else {
+            let lastPayout = game.meta.lastPayout;
+            resultSpan.className = "$0.00" === lastPayout ? "text-warning" : "text-success";
+            resultSpan.textContent = "+" + game.meta.lastPayout;
+            result.appendChild(resultSpan);
+        }
     }
 
     public setHighScores(highScores: HighScores): void {

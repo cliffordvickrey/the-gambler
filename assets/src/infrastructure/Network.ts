@@ -36,7 +36,7 @@ export class Network {
              * IE <= 11: time to party like it's 2009
              */
             $.ajax({url: url, method: method, xhrFields: {withCredentials: true}}).done(
-                data => resolve(data)
+                data => resolve(<T>data)
             ).fail((jqXhr: JQueryXHR) => {
                 reject(Network.getError(jqXhr.responseJSON));
             });
