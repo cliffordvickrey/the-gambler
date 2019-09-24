@@ -8,6 +8,7 @@ import {HighScores} from "../domain/HighScores";
 export class Observer implements ObserverInterface {
     private busy: boolean = false;
     private autoPilot: boolean = false;
+    private resigning: boolean = false;
     private readonly api: Api;
     private readonly viewModel: ViewModel;
 
@@ -17,7 +18,10 @@ export class Observer implements ObserverInterface {
     }
 
     public notify(event: EventType, params?: any): void {
-        if (this.busy && !this.autoPilot) {
+        if (
+            (this.busy && !this.autoPilot) ||
+            (this.resigning && event === EventType.tabClick && null !== params && "high-scores" === params.tab)
+        ) {
             return;
         }
 
@@ -240,19 +244,28 @@ export class Observer implements ObserverInterface {
 
     private resign(gameId: string): Promise<void> {
         return new Promise<void>((resolve, reject) => {
+            this.resigning = true;
+
             this.dispatch(EventType.tabClick, {tab: "high-scores"}).then(
                 () => {
                     this.viewModel.showTab("high-scores");
 
                     this.api.destroy(gameId).then(
                         (httpResponse: HttpResponse) => {
+                            this.resigning = false;
                             this.viewModel.setGame(httpResponse.game);
                             resolve();
                         },
-                        (err) => reject(err)
+                        (err) => {
+                            this.resigning = false;
+                            reject(err)
+                        }
                     );
                 },
-                (err) => reject(err)
+                (err) => {
+                    this.resigning = false;
+                    reject(err)
+                }
             );
         });
     };
