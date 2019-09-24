@@ -246,7 +246,7 @@ export class Observer implements ObserverInterface {
         return new Promise<void>((resolve, reject) => {
             this.resigning = true;
 
-            this.dispatch(EventType.tabClick, {tab: "high-scores"}).then(
+            this.dispatch(EventType.tabClick, {tab: "high-scores", gameId: this.viewModel.game.gameId}).then(
                 () => {
                     this.viewModel.showTab("high-scores");
 
