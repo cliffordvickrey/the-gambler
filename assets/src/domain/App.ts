@@ -24,6 +24,11 @@ export class App {
                     (response: HttpResponse) => {
                         this.viewModel.setSession(response.session);
                         this.viewModel.setGame(response.game);
+
+                        if (null !== response.game) {
+                            this.viewModel.showTab("game");
+                        }
+
                         this.viewModel.setLoaded(true);
                         this.eventBinder.bindUiActions();
 
