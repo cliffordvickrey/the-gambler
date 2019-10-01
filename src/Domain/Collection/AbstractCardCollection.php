@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Cliffordvickrey\TheGambler\Domain\Collection;
 
+use Cliffordvickrey\TheGambler\Domain\Contract\CollectionInterface;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Card;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Rank;
-use Cliffordvickrey\TheGambler\Domain\Contract\CollectionInterface;
 use OutOfBoundsException;
 use function array_combine;
 use function array_map;
@@ -42,6 +42,19 @@ abstract class AbstractCardCollection implements CollectionInterface
         $this->cards = array_values($indexed);
     }
 
+    /**
+     * @return Card[]
+     */
+    public function toIndexedArray(): array
+    {
+        $keys = array_map(function (Card $card): int {
+            return $card->getId();
+        }, $this->cards);
+
+        $array = array_combine($keys, $this->cards) ?: [];
+        return $array;
+    }
+
     public function sortByRankAndSuit(): void
     {
         $indexed = $this->toIndexedArray();
@@ -56,18 +69,6 @@ abstract class AbstractCardCollection implements CollectionInterface
 
         ksort($rankIndexed);
         $this->cards = array_values($rankIndexed);
-    }
-
-    /**
-     * @return Card[]
-     */
-    public function toIndexedArray(): array
-    {
-        $keys = array_map(function (Card $card): int {
-            return $card->getId();
-        }, $this->cards);
-
-        return array_combine($keys, $this->cards);
     }
 
     public function count(): int

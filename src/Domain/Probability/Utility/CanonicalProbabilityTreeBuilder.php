@@ -99,7 +99,7 @@ class CanonicalProbabilityTreeBuilder
             return new ProbabilityNode($draw, $frequencies, $this->rules, $meanPayout);
         }
 
-        $frequencies = array_combine($enum, array_fill(0, count($enum), 0));
+        $frequencies = array_combine($enum, array_fill(0, count($enum), 0)) ?: [];
         $handTypes = $this->getHandTypes($remainingCardIds, $cardIdsHeld);
 
         foreach ($handTypes as $handType) {
@@ -118,7 +118,7 @@ class CanonicalProbabilityTreeBuilder
         $cardHashesHeld = [];
         foreach ($draw as $i => $hold) {
             if ($hold) {
-                $cardIdsHeld[] = (string)$hand->getByOffset($i);
+                $cardIdsHeld[] = (string)$hand->getByOffset((int)$i);
                 $cardHashesHeld[] = $hashes[$i];
             }
         }

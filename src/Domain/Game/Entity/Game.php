@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cliffordvickrey\TheGambler\Domain\Game\Entity;
 
+use Cliffordvickrey\TheGambler\Domain\Enum\HandType;
 use Cliffordvickrey\TheGambler\Domain\Game\Exception\GameException;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameId;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameMeta;
@@ -16,6 +17,7 @@ use Cliffordvickrey\TheGambler\Domain\ValueObject\Card;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Draw;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Hand;
 use JsonSerializable;
+use LogicException;
 
 final class Game implements GameInterface, JsonSerializable
 {
@@ -83,12 +85,18 @@ final class Game implements GameInterface, JsonSerializable
      */
     public function play(Draw $draw): void
     {
+        $hand = $this->state->getHand();
+
+        if (null === $hand) {
+            throw new LogicException('Cannot play; no cards dealt');
+        }
+
         $this->state->play($draw, $this->handTypeResolver);
         $betAmount = $this->state->getBetAmount();
         $payoutRatio = (float)($betAmount / $this->rules->getBetAmount());
 
-        $hand = $this->state->getHand();
-        $handType = $this->state->getHandType();
+        $handType = $this->state->getHandType() ?? new HandType(HandType::NOTHING);
+
         $payout = (int)floor($this->rules->getPayoutAmount($handType) * $payoutRatio);
         $moveAnalysis = $this->analyzeMove($hand, $draw, $payoutRatio);
 

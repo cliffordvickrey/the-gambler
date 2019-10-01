@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Cliffordvickrey\TheGambler\src\Infrastructure\Cache;
+namespace Tests\Cliffordvickrey\TheGambler\Infrastructure\Cache;
 
 use Cliffordvickrey\TheGambler\Infrastructure\Cache\CacheException;
 use Cliffordvickrey\TheGambler\Infrastructure\Cache\FileCache;
@@ -10,7 +10,10 @@ use Cliffordvickrey\TheGambler\Infrastructure\Cache\TtlCacheManifest\TtlCacheMan
 use Cliffordvickrey\TheGambler\Infrastructure\Cache\TtlCacheManifest\TtlCacheManifestRepositoryInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\InvalidArgumentException;
-use function realpath;
+use Traversable;
+use function get_class;
+use function is_array;
+use function iterator_to_array;
 
 class FileCacheTest extends TestCase
 {
@@ -30,44 +33,58 @@ class FileCacheTest extends TestCase
 
     /**
      * @throws CacheException
-     * @throws InvalidArgumentException
      */
     public function testGet(): void
     {
-        $this->cache->set('foo', 'bar');
+        try {
+            $this->cache->set('foo', 'bar');
+        } catch (InvalidArgumentException $e) {
+            $this->fail('Unhandled ' . get_class($e));
+        }
         $this->assertEquals('bar', $this->cache->get('foo'));
     }
 
     /**
      * @throws CacheException
-     * @throws InvalidArgumentException
      */
     public function testGetWithTtl(): void
     {
-        $this->cache->set('foo', 'bar', -1);
+        try {
+            $this->cache->set('foo', 'bar', -1);
+        } catch (InvalidArgumentException $e) {
+            $this->fail('Unhandled ' . get_class($e));
+        }
         $this->assertEquals(null, $this->cache->get('foo'));
         $this->assertEquals(-1, $this->ttl->getForReading()->get('foo'));
     }
 
-    /**
-     * @throws InvalidArgumentException
-     */
     public function testGetMultiple(): void
     {
         $toSet = ['foo1' => 'bar1', 'foo2' => 'bar2'];
-        $this->cache->setMultiple($toSet);
-        $multiple = $this->cache->getMultiple(['foo1', 'foo2']);
-        $this->assertEquals($multiple['foo1'], 'bar1');
-        $this->assertEquals($multiple['foo2'], 'bar2');
+        try {
+            $this->cache->setMultiple($toSet);
+            $multiple = $this->cache->getMultiple(['foo1', 'foo2']);
+            if ($multiple instanceof Traversable) {
+                $multiple = iterator_to_array($multiple);
+            }
+            $this->assertEquals($multiple['foo1'], 'bar1');
+            $this->assertEquals($multiple['foo2'], 'bar2');
+        } catch (InvalidArgumentException $e) {
+            $this->fail('Unhandled ' . get_class($e));
+        }
     }
 
     /**
      * @throws CacheException
-     * @throws InvalidArgumentException
      */
     public function testDelete(): void
     {
-        $this->cache->set('foo', 'bar', 500);
+        try {
+            $this->cache->set('foo', 'bar', 500);
+        } catch (InvalidArgumentException $e) {
+            $this->fail('Unhandled ' . get_class($e));
+        }
+
         $this->cache->delete('foo');
         $manifest = $this->ttl->getForReading();
         $this->assertEquals(null, $manifest->get('foo'));
@@ -75,27 +92,35 @@ class FileCacheTest extends TestCase
 
     /**
      * @throws CacheException
-     * @throws InvalidArgumentException
      */
     public function testDeleteMultiple(): void
     {
         $toSet = ['foo1' => 'bar1', 'foo2' => 'bar2'];
-        $this->cache->setMultiple($toSet);
-        $this->cache->deleteMultiple(['foo1', 'foo2']);
+
+        try {
+            $this->cache->setMultiple($toSet);
+            $this->cache->deleteMultiple(['foo1', 'foo2']);
+        } catch (InvalidArgumentException $e) {
+            $this->fail('Unhandled ' . get_class($e));
+        }
+
         $this->assertEquals(null, $this->cache->get('foo1'));
         $this->assertEquals(null, $this->cache->get('foo2'));
     }
 
     /**
      * @throws CacheException
-     * @throws InvalidArgumentException
      */
     public function testGarbageCollection(): void
     {
-        $this->cache->set('bad1', 'nope', -1);
-        $this->cache->set('bad2', 'nope', -1);
-        $this->cache->set('good1', 'yay', 100);
-        $this->cache->set('good2', 'yay', 100);
+        try {
+            $this->cache->set('bad1', 'nope', -1);
+            $this->cache->set('bad2', 'nope', -1);
+            $this->cache->set('good1', 'yay', 100);
+            $this->cache->set('good2', 'yay', 100);
+        } catch (InvalidArgumentException $e) {
+            $this->fail('Unhandled ' . get_class($e));
+        }
 
         $this->cache->runGarbageCollection();
         $manifest = $this->ttl->getForReading();
@@ -107,6 +132,9 @@ class FileCacheTest extends TestCase
         $this->assertContains('good2', $keys);
     }
 
+    /**
+     * @throws CacheException
+     */
     public function tearDown(): void
     {
         $this->cache->clear();

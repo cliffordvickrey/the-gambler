@@ -30,31 +30,39 @@ class ServerRequestDecorator
         $this->request = $request;
     }
 
-    public function getSession(bool $required = true): ?Session
+    public function getSession(): Session
+    {
+        $session = $this->getSessionNullable();
+        if (null === $session) {
+            throw new RuntimeException('Could not resolve session');
+        }
+        return $session;
+    }
+
+    public function getSessionNullable(): ?Session
     {
         $session = $this->request->getAttribute(SessionMiddleware::ATTRIBUTE_SESSION);
         if ($session instanceof Session) {
             return $session;
         }
-
-        if ($required) {
-            throw new RuntimeException('Could not resolve session');
-        }
-
         return null;
     }
 
-    public function getGame(bool $required = true): ?GameInterface
+    public function getGame(): GameInterface
+    {
+        $game = $this->getGameNullable();
+        if (null === $game) {
+            throw new RuntimeException('Could not resolve game');
+        }
+        return $game;
+    }
+
+    public function getGameNullable(): ?GameInterface
     {
         $game = $this->request->getAttribute(GameResolvingMiddleware::ATTRIBUTE_GAME);
         if ($game instanceof GameInterface) {
             return $game;
         }
-
-        if ($required) {
-            throw new RuntimeException('Could not resolve game');
-        }
-
         return null;
     }
 

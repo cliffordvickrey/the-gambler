@@ -28,7 +28,7 @@ class HighScoresHandler implements RequestHandlerInterface
     {
         $requestDecorator = new ServerRequestDecorator($request);
         $highScores = $this->highScoresRepository->get();
-        $game = $requestDecorator->getGame(false);
+        $game = $requestDecorator->getGameNullable();
         list ($playerRating, $rank) = self::getRankAndPlayerRating($highScores, $game);
 
         $payload = [
@@ -59,7 +59,7 @@ class HighScoresHandler implements RequestHandlerInterface
         $gameId = (string)$game->getId();
         foreach ($highScores as $i => $highScore) {
             if ((string)$highScore->getGameId() === $gameId) {
-                return [$playerRating, sprintf('%d', $i + 1)];
+                return [$playerRating, sprintf('%d', ((int)$i) + 1)];
             }
         }
 

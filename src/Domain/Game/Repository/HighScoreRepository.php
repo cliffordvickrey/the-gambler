@@ -17,6 +17,7 @@ use function array_filter;
 use function array_merge;
 use function array_slice;
 use function count;
+use function is_bool;
 use function sprintf;
 use const ARRAY_FILTER_USE_BOTH;
 
@@ -50,6 +51,9 @@ class HighScoreRepository implements HighScoresRepositoryInterface
         }
 
         $dateTime = DateTimeImmutable::createFromFormat('0.u00 U', microtime());
+        if (is_bool($dateTime)) {
+            throw new RuntimeException('There was an internal PHP DateTime error');
+        }
         $dateTime = $dateTime->setTimezone(new DateTimeZone('EST'));
         $date = $dateTime->format('m-d-Y');
 

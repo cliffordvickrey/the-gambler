@@ -35,6 +35,6 @@ final class Suit extends AbstractEnum
     public static function fromId(int $id): self
     {
         $value = array_search($id, self::$ids) ?: '';
-        return new static($value);
+        return new static((string)$value);
     }
 }

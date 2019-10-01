@@ -9,6 +9,8 @@ use Cliffordvickrey\TheGambler\Infrastructure\Cache\TtlCacheManifest\TtlCacheMan
 use Cliffordvickrey\TheGambler\Infrastructure\Cache\TtlCacheManifest\TtlCacheManifestRepositoryInterface;
 use Cliffordvickrey\TheGambler\Infrastructure\Serializer\PhpSerializer;
 use Cliffordvickrey\TheGambler\Infrastructure\Serializer\SerializerInterface;
+use DateInterval;
+use DateTimeImmutable;
 use InvalidArgumentException;
 use Throwable;
 use UnexpectedValueException;
@@ -21,8 +23,10 @@ use function flock;
 use function fopen;
 use function fwrite;
 use function glob;
+use function is_bool;
 use function is_dir;
 use function is_file;
+use function is_resource;
 use function is_string;
 use function mkdir;
 use function preg_replace;
@@ -39,8 +43,10 @@ use const LOCK_UN;
 class FileCache extends AbstractCache implements GarbageCollectionInterface
 {
     private $directory;
+    /** @var SerializerInterface */
     private $serializer;
     private $ttlSupported;
+    /** @var TtlCacheManifestRepositoryInterface */
     private $ttlCacheManifestRepository;
     private $lockSupported;
 
@@ -166,13 +172,13 @@ class FileCache extends AbstractCache implements GarbageCollectionInterface
 
         $locked = flock($resource, LOCK_SH);
         if (!$locked) {
-            throw new CacheException('Could not acquire a shared lock on file "%s"', $fileName);
+            throw new CacheException(sprintf('Could not acquire a shared lock on file "%s"', $fileName));
         }
 
         try {
             $fileContents = stream_get_contents($resource);
             if (false === $fileContents) {
-                throw new CacheException('Failed to read contents of file "%s"', $fileName);
+                throw new CacheException(sprintf('Failed to read contents of file "%s"', $fileName));
             }
             return $fileContents;
         } catch (CacheException $e) {
@@ -195,6 +201,10 @@ class FileCache extends AbstractCache implements GarbageCollectionInterface
         $this->filePutContents($fileName, $serialized);
 
         if ($this->ttlSupported) {
+            if ($ttl instanceof DateInterval) {
+                $ttl = self::dateIntervalToSeconds($ttl);
+            }
+
             $manifest = $this->ttlCacheManifestRepository->getForWriting();
             $manifest->set($key, $ttl);
             $this->ttlCacheManifestRepository->save($manifest);
@@ -213,21 +223,26 @@ class FileCache extends AbstractCache implements GarbageCollectionInterface
         if (!$this->lockSupported) {
             $bytesWritten = file_put_contents($fileName, $contents);
             if (false === $bytesWritten) {
-                throw new CacheException('Failed to write to file "%s"', $fileName);
+                throw new CacheException(sprintf('Failed to write to file "%s"', $fileName));
             }
             return;
         }
 
         $resource = fopen($fileName, 'w');
+
+        if (!is_resource($resource)) {
+            throw new CacheException(sprintf('Failed to open "%s" for writing', $fileName));
+        }
+
         $locked = flock($resource, LOCK_EX);
         if (!$locked) {
-            throw new CacheException('Could not acquire an exclusive lock on file "%s"', $fileName);
+            throw new CacheException(sprintf('Could not acquire an exclusive lock on file "%s"', $fileName));
         }
 
         try {
             $bytesWritten = fwrite($resource, $contents);
             if (false === $bytesWritten) {
-                throw new CacheException('Failed to write to file "%s"', $fileName);
+                throw new CacheException(sprintf('Failed to write to file "%s"', $fileName));
             }
         } catch (CacheException $e) {
             throw $e;
@@ -237,9 +252,23 @@ class FileCache extends AbstractCache implements GarbageCollectionInterface
         }
     }
 
+    private static function dateIntervalToSeconds(DateInterval $dateInterval): int
+    {
+        $start = new DateTimeImmutable();
+        $end = $start->add($dateInterval);
+        return $end->getTimestamp() - $start->getTimestamp();
+    }
+
+    /**
+     * @return bool
+     * @throws CacheException
+     */
     public function clear()
     {
         $files = glob($this->directory . DIRECTORY_SEPARATOR . '*');
+        if (is_bool($files)) {
+            throw new CacheException('Failed to glob files for deletion');
+        }
         array_map('unlink', $files);
         return true;
     }

@@ -30,7 +30,7 @@ class GameResolvingMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $requestDecorator = new ServerRequestDecorator($request);
-        $session = $requestDecorator->getSession(false);
+        $session = $requestDecorator->getSessionNullable();
         if (null === $session) {
             // no session? No game!
             return $handler->handle($request);

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Cliffordvickrey\TheGambler\Domain\Probablity\Generator;
+namespace Tests\Cliffordvickrey\TheGambler\Domain\Probability\Generator;
 
 use Cliffordvickrey\TheGambler\Domain\Probability\Generator\CombinationGenerator;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Deck;

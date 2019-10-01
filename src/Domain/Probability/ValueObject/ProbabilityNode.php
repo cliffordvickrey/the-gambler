@@ -10,6 +10,7 @@ use Cliffordvickrey\TheGambler\Domain\Rules\RulesInterface;
 use Cliffordvickrey\TheGambler\Domain\Utility\Format;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Draw;
 use InvalidArgumentException;
+use RuntimeException;
 use UnexpectedValueException;
 use function array_combine;
 use function array_keys;
@@ -138,7 +139,7 @@ class ProbabilityNode implements PortableInterface
             return Format::percentFormat($frequency / $count);
         }, $this->frequencies);
 
-        $percentages = array_combine(array_keys($this->frequencies), $percentagesByHand);
+        $percentages = array_combine(array_keys($this->frequencies), $percentagesByHand) ?: [];
         $this->percentages = $percentages;
 
         return $this->percentages;
@@ -155,6 +156,10 @@ class ProbabilityNode implements PortableInterface
         }, array_keys($this->frequencies));
 
         $sumByHand = array_map(function (HandType $handType, int $frequency): float {
+            if (null === $this->rules) {
+                throw new RuntimeException('Could not resolve rules');
+            }
+
             return (float)($frequency * $this->rules->getPayoutAmount($handType));
         }, $handTypes, $this->frequencies);
 

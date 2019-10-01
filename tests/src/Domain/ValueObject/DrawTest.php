@@ -84,7 +84,7 @@ class DrawTest extends TestCase
             $draw = Draw::fromId($i);
             $iterator = $draw->getIterator();
             $array = iterator_to_array($iterator);
-            $this->assertEquals($array, json_decode(json_encode($draw)));
+            $this->assertEquals($array, json_decode(json_encode($draw) ?: ''));
         }
     }
 

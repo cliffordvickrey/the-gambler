@@ -32,7 +32,7 @@ class NullCache implements CacheInterface
 
     public function getMultiple($keys, $default = null)
     {
-        return array_combine((array)$keys, $default);
+        return array_combine((array)$keys, $default) ?: [];
     }
 
     public function setMultiple($values, $ttl = null)

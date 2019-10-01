@@ -28,7 +28,11 @@ class DestroyGameMiddleware implements MiddlewareInterface
     {
         $requestDecorator = new ServerRequestDecorator($request);
         $session = $requestDecorator->getSession();
-        $game = $requestDecorator->getGame(false);
+        $game = $requestDecorator->getGameNullable();
+
+        if (null === $game) {
+            return $handler->handle($request);
+        }
 
         try {
             $this->gameRepository->delete($game);

@@ -34,7 +34,7 @@ final class HighScores implements CollectionInterface, PortableInterface
 
     public function unserialize($serialized)
     {
-        $unSerialized = unserialize($serialized, [HighScore::class]);
+        $unSerialized = unserialize($serialized, ['allowed_classes' => [HighScore::class]]);
         if (!is_array($unSerialized)) {
             throw new UnexpectedValueException('Expected array');
         }

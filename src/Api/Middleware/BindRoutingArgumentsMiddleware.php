@@ -16,6 +16,11 @@ class BindRoutingArgumentsMiddleware implements MiddlewareInterface
     {
         $routeContext = RouteContext::fromRequest($request);
         $route = $routeContext->getRoute();
+
+        if (null === $route) {
+            return $handler->handle($request);
+        }
+
         $arguments = $route->getArguments();
 
         foreach ($arguments as $key => $value) {

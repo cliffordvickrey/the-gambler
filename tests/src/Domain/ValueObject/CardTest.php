@@ -38,7 +38,7 @@ class CardTest extends TestCase
         $deck = new Deck();
 
         foreach ($deck as $i => $card) {
-            $this->assertEquals($i + 1, $card->getId());
+            $this->assertEquals(((int)$i) + 1, $card->getId());
         }
     }
 

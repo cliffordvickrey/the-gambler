@@ -45,7 +45,7 @@ final class HighScore implements PortableInterface
     public function unserialize($serialized)
     {
         $unSerialized = unserialize($serialized, [
-            Player::class, GameId::class, GameMeta::class
+            'allowed_classes' => [Player::class, GameId::class, GameMeta::class]
         ]);
 
         if (!is_array($unSerialized)) {

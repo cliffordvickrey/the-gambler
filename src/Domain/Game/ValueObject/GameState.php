@@ -212,12 +212,16 @@ final class GameState implements PortableInterface
      */
     private function getHeldCards(Draw $draw): array
     {
+        if (null === $this->hand) {
+            return [];
+        }
+
         $heldCards = [];
         foreach ($draw as $i => $hold) {
             if (!$hold) {
                 continue;
             }
-            $heldCards[] = $this->hand->getByOffset($i);
+            $heldCards[] = $this->hand->getByOffset((int)$i);
         }
         return $heldCards;
     }
@@ -231,6 +235,10 @@ final class GameState implements PortableInterface
     {
         if (null !== $this->handType) {
             throw new GameException('Cannot alter hand (cheater!); hand has already been played');
+        }
+
+        if (null === $this->hand) {
+            throw new GameException('Cannot alter hand (cheater!); player has not yet bet');
         }
 
         $hand = clone $this->hand;

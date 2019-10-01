@@ -6,6 +6,7 @@ namespace Cliffordvickrey\TheGambler\Infrastructure\Cache\TtlCacheManifest;
 
 use Cliffordvickrey\TheGambler\Infrastructure\Cache\CacheException;
 use InvalidArgumentException;
+use RuntimeException;
 use Throwable;
 use function fclose;
 use function flock;
@@ -13,6 +14,7 @@ use function fopen;
 use function ftruncate;
 use function fwrite;
 use function is_array;
+use function is_bool;
 use function is_file;
 use function json_decode;
 use function json_encode;
@@ -29,7 +31,7 @@ class TtlCacheManifestRepository implements TtlCacheManifestRepositoryInterface
     const FILE_NAME = 'ttl-manifest.json';
 
     private $fileName;
-    /** @var resource */
+    /** @var null|resource */
     private $resource;
 
     public function __construct(string $directory)
@@ -60,6 +62,9 @@ class TtlCacheManifestRepository implements TtlCacheManifestRepositoryInterface
     private function getFromResource(bool $exclusiveLock = false): TtlCacheManifestInterface
     {
         $this->initResource($exclusiveLock);
+        if (null === $this->resource) {
+            throw new RuntimeException('Failed to initialize resource');
+        }
 
         $manifest = null;
 
@@ -100,12 +105,12 @@ class TtlCacheManifestRepository implements TtlCacheManifestRepositoryInterface
 
         $resource = fopen($this->fileName, $forWriting ? 'c+' : 'r');
         if (false === $resource) {
-            throw new CacheException(sprintf('Could not open file "%s" for reading and writing', $this->resource));
+            throw new CacheException(sprintf('Could not open file "%s" for reading and writing', $this->fileName));
         }
 
         $locked = flock($resource, $forWriting ? LOCK_UN : LOCK_SH);
         if (!$locked) {
-            throw new CacheException('Could not acquire a lock on file "%s"', $this->resource);
+            throw new CacheException(sprintf('Could not acquire a lock on file "%s"', $this->fileName));
         }
 
         $this->resource = $resource;
@@ -152,9 +157,15 @@ class TtlCacheManifestRepository implements TtlCacheManifestRepositoryInterface
     public function save(TtlCacheManifestInterface $manifest): void
     {
         $this->initResource(true);
+        if (null === $this->resource) {
+            throw new RuntimeException('Failed to initialize resource');
+        }
 
         try {
             $json = json_encode($manifest);
+            if (is_bool($json)) {
+                throw new RuntimeException('Failed to encode JSON');
+            }
 
             ftruncate($this->resource, 0);
             rewind($this->resource);

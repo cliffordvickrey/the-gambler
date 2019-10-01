@@ -9,6 +9,7 @@ use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
 use function bin2hex;
+use function is_string;
 use function preg_replace;
 use function random_bytes;
 use function serialize;
@@ -27,6 +28,10 @@ final class GameId implements PortableInterface
         }
 
         $id = preg_replace('/[^a-z0-9]/i', '', $id);
+
+        if (!is_string($id)) {
+            throw new RuntimeException('There was an internal regex error');
+        }
 
         if (32 !== strlen($id)) {
             throw new InvalidArgumentException('Game ID contains invalid characters');

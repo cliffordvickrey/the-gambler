@@ -8,6 +8,7 @@ use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameId;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\Player;
 use Cliffordvickrey\TheGambler\Infrastructure\Serializer\PhpSerializer;
 use Cliffordvickrey\TheGambler\Infrastructure\Serializer\SerializerInterface;
+use RuntimeException;
 use Throwable;
 use function is_string;
 use function session_destroy;
@@ -22,9 +23,9 @@ class SessionManager implements SessionManagerInterface
 {
     const SESSION_KEY = 'poker';
 
+    /** @var SerializerInterface */
     private $serializer;
-
-    /** @var Session */
+    /** @var Session|null */
     private $session;
 
     public function __construct(?SerializerInterface $serializer = null)
@@ -107,6 +108,10 @@ class SessionManager implements SessionManagerInterface
     {
         if (!$this->isAuthenticated()) {
             throw new SessionException('Player is not authenticated');
+        }
+
+        if (null === $this->session) {
+            throw new RuntimeException('Authentication failed');
         }
 
         return $this->session;

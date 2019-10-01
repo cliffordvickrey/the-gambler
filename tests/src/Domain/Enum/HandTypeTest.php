@@ -39,6 +39,6 @@ class HandTypeTest extends TestCase
     public function testJsonSerialize(): void
     {
         $handType = new HandType(HandType::FLUSH);
-        $this->assertEquals(HandType::FLUSH, json_decode(json_encode($handType)));
+        $this->assertEquals(HandType::FLUSH, json_decode(json_encode($handType) ?: ''));
     }
 }

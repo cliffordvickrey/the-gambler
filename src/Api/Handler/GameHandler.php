@@ -15,8 +15,8 @@ class GameHandler implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         $requestDecorator = new ServerRequestDecorator($request);
-        $session = $requestDecorator->getSession(false);
-        $game = $requestDecorator->getGame(false);
+        $session = $requestDecorator->getSessionNullable();
+        $game = $requestDecorator->getGameNullable();
         $payload = ['session' => $session, 'game' => $game];
         $response = new JsonResponse($payload);
         return $response;

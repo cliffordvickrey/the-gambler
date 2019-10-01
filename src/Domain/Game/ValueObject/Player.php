@@ -6,6 +6,8 @@ namespace Cliffordvickrey\TheGambler\Domain\Game\ValueObject;
 
 use Cliffordvickrey\TheGambler\Domain\Contract\PortableInterface;
 use Cliffordvickrey\TheGambler\Domain\Game\Exception\GameException;
+use RuntimeException;
+use function is_string;
 use function preg_replace;
 use function serialize;
 use function strlen;
@@ -23,6 +25,11 @@ final class Player implements PortableInterface
     public function __construct(string $name)
     {
         $name = preg_replace('/[^a-z0-9 ]/i', '', $name);
+
+        if (!is_string($name)) {
+            throw new RuntimeException('There was an internal regex error');
+        }
+
         $strLen = strlen($name);
         if ($strLen < 1 || $strLen > 20) {
             throw new GameException('Invalid player name');

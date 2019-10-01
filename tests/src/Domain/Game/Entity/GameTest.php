@@ -22,7 +22,11 @@ use Cliffordvickrey\TheGambler\Domain\ValueObject\Draw;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Hand;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\PossibleDraws;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use UnexpectedValueException;
 use function count;
+use function get_class;
+use function is_iterable;
 use function rand;
 
 class GameTest extends TestCase
@@ -166,6 +170,11 @@ class GameTest extends TestCase
         $state = $this->game->getState();
         $this->game->cheat();
         $this->game->bet();
+
+        if (null === $state->getHand()) {
+            throw new UnexpectedValueException('Expected instance of ' . Hand::class);
+        }
+
         $hand = clone $state->getHand();
         $deck = new Deck();
         foreach ($hand as $card) {
@@ -184,6 +193,11 @@ class GameTest extends TestCase
         $this->game->cheat();
         $this->game->bet();
         $this->game->play(Draw::fromId(1));
+
+        if (null === $state->getHand()) {
+            throw new UnexpectedValueException('Expected instance of ' . Hand::class);
+        }
+
         $hand = clone $state->getHand();
         $this->expectExceptionMessage('Cannot alter hand (cheater!); hand has already been played');
         $this->game->spliceHand(0, $hand->getByOffset(0));
@@ -193,6 +207,11 @@ class GameTest extends TestCase
     {
         $state = $this->game->getState();
         $this->game->bet();
+
+        if (null === $state->getHand()) {
+            throw new UnexpectedValueException('Expected instance of ' . Hand::class);
+        }
+
         $hand = clone $state->getHand();
         $deck = new Deck();
         foreach ($hand as $card) {
@@ -215,7 +234,7 @@ class GameTest extends TestCase
             $drawId = rand(Draw::MIN_ID, Draw::MAX_ID);
             $draw = Draw::fromId($drawId);
 
-            $moveAnalysis = $this->analyzeMove($state->getHand(), $draw);
+            $moveAnalysis = $this->analyzeMove($state->getHand() ?? new Hand(), $draw);
             $expectedAmount = $moveAnalysis->getExpectedAmount();
             $maxExpectedAmount = $moveAnalysis->getMaxExpectedAmount();
             $meanMaxExpectedAmount = $moveAnalysis->getMeanMaxExpectedAmount();
@@ -233,7 +252,7 @@ class GameTest extends TestCase
             $hand = $state->getHand();
             $cardsHeld = $state->getCardsHeld();
             $cardsDealt = $state->getCardsDealt();
-            $handType = $state->getHandType();
+            $handType = $state->getHandType() ?? new HandType(HandType::NOTHING);
             $amount = $this->rules->getPayoutAmount($handType);
             $expectedPurse = $oldPurse + $amount;
 
@@ -254,6 +273,10 @@ class GameTest extends TestCase
             $this->assertInstanceOf(CardCollection::class, $cardsHeld);
             $this->assertInstanceOf(CardCollection::class, $cardsDealt);
             $this->assertInstanceOf(HandType::class, $handType);
+
+            if (!is_iterable($cardsDealt) || !is_iterable($cardsHeld)) {
+                throw new RuntimeException('Expected iterable collection');
+            }
 
             $newHand = new Hand();
             foreach ($cardsDealt as $card) {

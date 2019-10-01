@@ -85,7 +85,7 @@ final class GameMeta implements PortableInterface
         $meanMaxExpectedAmount = $analysis->getMeanMaxExpectedAmount();
 
         // move efficiency: ratio of the move's expected payout vs. the maximum payout for this hand
-        if (0 === $expectedAmount) {
+        if (0.0 === $expectedAmount) {
             $numerator = $this->efficiency;
         } else {
             $moveEfficiency = self::safeDivision($expectedAmount, $maxExpectedAmount);

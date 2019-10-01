@@ -21,7 +21,7 @@ class CombinationGenerator
     public function __invoke($traversable, int $numberChosen): Generator
     {
         $toCombine = $traversable;
-        if (!is_array($traversable)) {
+        if (!is_array($toCombine)) {
             $toCombine = iterator_to_array($toCombine);
         }
 

@@ -7,5 +7,4 @@ Play at [https://www.cliffordvickrey.com/poker/app/](https://www.cliffordvickrey
 ## @todo
 
 * API unit tests
-* PHPStan analysis
 * Documentation
