@@ -56,22 +56,25 @@ class GameService implements GameServiceInterface
             throw new UnexpectedValueException('Could not resolve hand or hand type');
         }
 
+        $normalPayout = $this->rules->getPayoutAmount($handType);
+
         $payoutRatio = (float)($betAmount / $this->rules->getBetAmount());
-        $payout = (int)floor($this->rules->getPayoutAmount($handType) * $payoutRatio);
+        $payout = (int)floor($normalPayout * $payoutRatio);
 
         $tree = $this->probabilityService->getProbabilityTree($hand);
         $node = $tree->getNode($draw);
         $highestNode = $tree->getNodeWithHighestMeanPayout();
 
-        $expectedPayout = $payoutRatio * $node->getMeanPayout();
-        $optimalExpectedPayout = $payoutRatio * $highestNode->getMeanPayout();
+        $normalExpectedPayout = $node->getMeanPayout();
+        $normalOptimalExpectedPayout = $highestNode->getMeanPayout();
+
+        $expectedPayout = $payoutRatio * $normalExpectedPayout;
+        $optimalExpectedPayout = $payoutRatio * $normalOptimalExpectedPayout;
 
         $skill = new MoveSkill($expectedPayout, $highestNode->getDraw(), $optimalExpectedPayout);
 
-        $minExpected = $payoutRatio * $this->probabilityService->getMinHighestPayout();
-
-        $logOptimalExpected = Math::logTransformScalar($optimalExpectedPayout, $minExpected);
-
+        $minExpected = $this->probabilityService->getMinHighestPayout();
+        $logOptimalExpected = Math::logTransformScalar($normalOptimalExpectedPayout, $minExpected);
         $logMeanOptimalExpected = $this->probabilityService->getLogMeanHighestPayout();
         $logOptimalStDev = $this->probabilityService->getLogStandardDeviationOfHighestPayout();
 
@@ -80,7 +83,7 @@ class GameService implements GameServiceInterface
             Math::standardize($logOptimalExpected, $logMeanOptimalExpected, $logOptimalStDev)
         );
 
-        $logPayout = Math::logTransformScalar($payout, $payoutRatio * $node->getMinPayout());
+        $logPayout = Math::logTransformScalar($normalPayout, $node->getMinPayout());
 
         $logStDev = $node->getLogStandardDeviation();
         $zScore = null;
