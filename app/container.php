@@ -12,6 +12,7 @@ use Cliffordvickrey\TheGambler\Api\Middleware\SaveGameMiddleware;
 use Cliffordvickrey\TheGambler\Api\Middleware\UpdateHighScoresMiddleware;
 use Cliffordvickrey\TheGambler\Domain\Game\Repository\GameRepositoryInterface;
 use Cliffordvickrey\TheGambler\Domain\Game\Repository\HighScoresRepositoryInterface;
+use Cliffordvickrey\TheGambler\Domain\Game\Service\GameServiceInterface;
 use Cliffordvickrey\TheGambler\Domain\HandTypeResolver\HandTypeResolverInterface;
 use Cliffordvickrey\TheGambler\Domain\Probability\Service\ProbabilityServiceInterface;
 use Cliffordvickrey\TheGambler\Domain\Rules\RulesInterface;
@@ -26,6 +27,7 @@ use Cliffordvickrey\TheGambler\Infrastructure\Factory\Api\Middleware\ErrorHandli
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Api\Middleware\GarbageCollectionMiddlewareFactory;
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Api\Middleware\SaveGameMiddlewareFactory;
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Api\Middleware\UpdateHighScoresMiddlewareFactory;
+use Cliffordvickrey\TheGambler\Infrastructure\Factory\Domain\Game\Factory\GameServiceFactory;
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Domain\Game\Repository\GameRepositoryFactory;
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Domain\Game\Repository\HighScoresRepositoryFactory;
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Domain\HandTypeResolver\HandTypeResolverFactory;
@@ -66,6 +68,10 @@ return (function () {
         },
         GameCacheInterface::class => function (ContainerInterface $container) {
             $factory = new GameCacheFactory();
+            return $factory($container);
+        },
+        GameServiceInterface::class => function (ContainerInterface $container) {
+            $factory = new GameServiceFactory();
             return $factory($container);
         },
         GameRepositoryInterface::class => function (ContainerInterface $container) {

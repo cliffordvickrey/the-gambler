@@ -119,9 +119,13 @@
                                         to hold, and draw a new hand. Below are winning hands and their payout for <span
                                                 data-doodad="default-bet"></span> bets. If you get bored, click <span
                                                 class="font-italic">Cheat</span> to alter your hand, see the frequencies
-                                        and average payouts of every possible move, get hints, and run the game in
-                                        autopilot mode. Cheaters, though, are ineligible for high scores.
+                                        and average payouts of every possible move before you but, get hints, and run
+                                        the game in autopilot mode. Cheaters, though, are ineligible for high scores.
                                     </p>
+                                    <p class="lead">At the conclusion of each turn, click <i
+                                                class="fas fa-icon-circle text-info"></i> to see descriptive
+                                        statistics related to the hand you played, and the <span class="font-italic">
+                                            Odds</span> tab to see likelihood of every possible move.</p>
                                     <p class="lead">
                                         <span class="font-weight-bold">Efficiency</span>: The percentage of the total
                                         expected payouts of your moves relative to the expected payouts of the best
@@ -129,8 +133,11 @@
                                     </p>
                                     <p class="lead">
                                         <span class="font-weight-bold">Luck</span>: Computed from the quality of the
-                                        dealt hands to the average hand, and the actual payouts of the moves compared to
-                                        the expected payouts.
+                                        dealt hands to the average hand. More technically, it is the average standard
+                                        score of the optimal expected payout of the cards dealt, log-adjusted to correct
+                                        the positive skewness of the payouts' <a href="#"
+                                                                                 id="app-probability-distribution">probability
+                                            distribution.</a>
                                     </p>
                                     <p class="lead">
                                         <span class="font-weight-bold">Score</span>: Gambling efficiency &times; maximum
@@ -363,7 +370,7 @@
                                 <div class="col-12 col-lg-6 offset-lg-3 row">
                                     <div class="container-fluid">
                                         <div class="form-row justify-content-center">
-                                            <div class="col-12 col-lg-6 col-lg-offset-3 text-center">
+                                            <div class="col-10 col-lg-5 col-lg-offset-3 text-center">
                                                 <label class="sr-only" for="app-amount">Amount</label>
                                                 <div class="input-group">
                                                     <div class="input-group-prepend">
@@ -371,6 +378,13 @@
                                                     </div>
                                                     <input data-input="amount" id="app-amount" type="number"
                                                            class="form-control"/>
+                                                </div>
+                                            </div>
+                                            <div class="col-2 col-lg-1 text-center">
+                                                <div class="p-1">
+                                                    <a href="#" id="app-info">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </a>
                                                 </div>
                                             </div>
                                         </div>
@@ -423,7 +437,10 @@
                                         <select class="form-control" id="app-frequencies-or-percentages"
                                                 data-select="odds">
                                             <option value="frequencies">Frequencies</option>
-                                            <option value="percentages" selected="selected">Percentages</option>
+                                            <option value="percentages">Percentages (Exact)</option>
+                                            <option value="percentages-rounded" selected="selected">Percentages
+                                                (Rounded)
+                                            </option>
                                         </select>
                                     </div>
                                 </div>
@@ -453,6 +470,8 @@
                                             <thead>
                                             <tr>
                                                 <th class="text-center" data-odds-cell="cards">Cards Held</th>
+                                                <th class="text-center" data-odds-cell="payout"><a href="#">Mean
+                                                        Payout</a></th>
                                                 <th class="text-center" data-odds-cell="nothing">
                                                     <a href="#" data-toggle="tooltip" data-placement="top"
                                                        data-html="true"
@@ -523,13 +542,12 @@
                                                         Royal Flush
                                                     </a>
                                                 </th>
-                                                <th class="text-center" data-odds-cell="payout"><a href="#">Mean
-                                                        Payout</a></th>
                                             </tr>
                                             </thead>
                                             <tbody>
                                             <tr data-odds-draw="1">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -540,10 +558,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="2">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -554,10 +572,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="3">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -568,10 +586,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="4">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -582,10 +600,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="5">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -596,10 +614,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="6">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -610,10 +628,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="7">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -624,10 +642,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="8">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -638,10 +656,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="9">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -652,10 +670,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="10">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -666,10 +684,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="11">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -680,10 +698,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="12">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -694,10 +712,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="13">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -708,10 +726,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="14">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -722,10 +740,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="15">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -736,10 +754,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="16">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -750,10 +768,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="17">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -764,10 +782,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="18">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -778,10 +796,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="19">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -792,10 +810,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="20">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -806,10 +824,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="21">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -820,10 +838,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="22">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -834,10 +852,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="23">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -848,10 +866,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="24">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -862,10 +880,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="25">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -876,10 +894,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="26">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -890,10 +908,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="27">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -904,10 +922,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="28">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -918,10 +936,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="29">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -932,10 +950,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="30">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -946,10 +964,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="31">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -960,10 +978,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="32">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -974,14 +992,13 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                     <div class="table-responsive">
                                         <table data-table="percentages"
-                                               class="table table-sm table-bordered table-striped">
+                                               class="table table-sm table-bordered table-striped d-none">
                                             <colgroup>
                                                 <col class="app-w-833">
                                                 <col class="app-w-833">
@@ -999,6 +1016,8 @@
                                             <thead>
                                             <tr>
                                                 <th class="text-center" data-odds-cell="cards">Cards Held</th>
+                                                <th class="text-center" data-odds-cell="payout"><a href="#">Mean
+                                                        Payout</a></th>
                                                 <th class="text-center" data-odds-cell="nothing">
                                                     <a href="#" data-toggle="tooltip" data-placement="top"
                                                        data-html="true"
@@ -1069,13 +1088,12 @@
                                                         Royal Flush
                                                     </a>
                                                 </th>
-                                                <th class="text-center" data-odds-cell="payout"><a href="#">Mean
-                                                        Payout</a></th>
                                             </tr>
                                             </thead>
                                             <tbody>
                                             <tr data-odds-draw="1">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1086,10 +1104,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="2">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1100,10 +1118,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="3">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1114,10 +1132,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="4">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1128,10 +1146,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="5">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1142,10 +1160,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="6">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1156,10 +1174,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="7">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1170,10 +1188,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="8">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1184,10 +1202,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="9">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1198,10 +1216,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="10">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1212,10 +1230,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="11">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1226,10 +1244,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="12">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1240,10 +1258,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="13">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1254,10 +1272,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="14">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1268,10 +1286,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="15">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1282,10 +1300,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="16">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1296,10 +1314,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="17">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1310,10 +1328,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="18">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1324,10 +1342,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="19">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1338,10 +1356,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="20">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1352,10 +1370,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="21">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1366,10 +1384,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="22">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1380,10 +1398,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="23">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1394,10 +1412,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="24">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1408,10 +1426,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="25">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1422,10 +1440,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="26">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1436,10 +1454,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="27">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1450,10 +1468,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="28">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1464,10 +1482,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="29">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1478,10 +1496,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="30">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1492,10 +1510,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="31">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1506,10 +1524,10 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             <tr data-odds-draw="32">
                                                 <td data-odds-cell="cards"></td>
+                                                <td class="text-right" data-odds-cell="payout"></td>
                                                 <td class="text-right" data-odds-cell="nothing"></td>
                                                 <td class="text-right" data-odds-cell="jacksOrBetter"></td>
                                                 <td class="text-right" data-odds-cell="twoPair"></td>
@@ -1520,10 +1538,555 @@
                                                 <td class="text-right" data-odds-cell="fourOfAKind"></td>
                                                 <td class="text-right" data-odds-cell="straightFlush"></td>
                                                 <td class="text-right" data-odds-cell="royalFlush"></td>
-                                                <td class="text-right" data-odds-cell="payout"></td>
                                             </tr>
                                             </tbody>
                                         </table>
+                                        <div class="table-responsive">
+                                            <table data-table="percentages-rounded"
+                                                   class="table table-sm table-bordered table-striped">
+                                                <colgroup>
+                                                    <col class="app-w-833">
+                                                    <col class="app-w-833">
+                                                    <col class="app-w-833">
+                                                    <col class="app-w-833">
+                                                    <col class="app-w-833">
+                                                    <col class="app-w-833">
+                                                    <col class="app-w-833">
+                                                    <col class="app-w-833">
+                                                    <col class="app-w-833">
+                                                    <col class="app-w-833">
+                                                    <col class="app-w-833">
+                                                    <col class="app-w-833">
+                                                </colgroup>
+                                                <thead>
+                                                <tr>
+                                                    <th class="text-center" data-odds-cell="cards">Cards Held</th>
+                                                    <th class="text-center" data-odds-cell="payout"><a href="#">Mean
+                                                            Payout</a></th>
+                                                    <th class="text-center" data-odds-cell="nothing">
+                                                        <a href="#" data-toggle="tooltip" data-placement="top"
+                                                           data-html="true"
+                                                           title="&lt;span class=&quot;app-suit-white&quot;&gt;A&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;6&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;7&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;7&heartsuit;&lt;/span&gt;">
+                                                            Nothing
+                                                        </a>
+                                                    </th>
+                                                    <th class="text-center" data-odds-cell="jacksOrBetter">
+                                                        <a href="#" data-toggle="tooltip" data-placement="top"
+                                                           data-html="true"
+                                                           title="&lt;span class=&quot;app-suit-white&quot;&gt;10&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;J&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;Q&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;K&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;A&spadesuit;&lt;/span&gt;">
+                                                            Jacks or Better
+                                                        </a>
+                                                    </th>
+                                                    <th class="text-center" data-odds-cell="twoPair">
+                                                        <a href="#" data-toggle="tooltip" data-placement="top"
+                                                           data-html="true"
+                                                           title="&lt;span class=&quot;app-suit-white&quot;&gt;10&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;10&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;4&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;4&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;9&spadesuit;&lt;/span&gt;">
+                                                            Two Pair
+                                                        </a>
+                                                    </th>
+                                                    <th class="text-center" data-odds-cell="threeOfAKind">
+                                                        <a href="#" data-toggle="tooltip" data-placement="top"
+                                                           data-html="true"
+                                                           title="&lt;span class=&quot;app-suit-white&quot;&gt;2&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;9&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;3&diamondsuit;&lt;/span&gt;">
+                                                            Three of a Kind
+                                                        </a>
+                                                    </th>
+                                                    <th class="text-center" data-odds-cell="straight">
+                                                        <a href="#" data-toggle="tooltip" data-placement="top"
+                                                           data-html="true"
+                                                           title="&lt;span class=&quot;app-suit-white&quot;&gt;4&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;5&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;6&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;7&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;8&heartsuit;&lt;/span&gt;">
+                                                            Straight
+                                                        </a>
+                                                    </th>
+                                                    <th class="text-center" data-odds-cell="flush">
+                                                        <a href="#" data-toggle="tooltip" data-placement="top"
+                                                           data-html="true"
+                                                           title="&lt;span class=&quot;app-suit-red&quot;&gt;A&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;Q&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;2&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;7&heartsuit;&lt;/span&gt;">
+                                                            Flush
+                                                        </a>
+                                                    </th>
+                                                    <th class="text-center" data-odds-cell="fullHouse">
+                                                        <a href="#" data-toggle="tooltip" data-placement="top"
+                                                           data-html="true"
+                                                           title="&lt;span class=&quot;app-suit-white&quot;&gt;6&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;4&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;4&clubsuit;&lt;/span&gt;">
+                                                            Full House
+                                                        </a>
+                                                    </th>
+                                                    <th class="text-center" data-odds-cell="fourOfAKind">
+                                                        <a href="#" data-toggle="tooltip" data-placement="top"
+                                                           data-html="true"
+                                                           title="&lt;span class=&quot;app-suit-white&quot;&gt;6&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;6&heartsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;6&clubsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;3&diamondsuit;&lt;/span&gt;">
+                                                            Four of a Kind
+                                                        </a>
+                                                    </th>
+                                                    <th class="text-center" data-odds-cell="straightFlush">
+                                                        <a href="#" data-toggle="tooltip" data-placement="top"
+                                                           data-html="true"
+                                                           title="&lt;span class=&quot;app-suit-red&quot;&gt;7&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;8&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;9&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;10&diamondsuit;&lt;/span&gt;&lt;span class=&quot;app-suit-red&quot;&gt;J&diamondsuit;&lt;/span&gt;">
+                                                            Straight Flush
+                                                        </a>
+                                                    </th>
+                                                    <th class="text-center" data-odds-cell="royalFlush">
+                                                        <a href="#" data-toggle="tooltip" data-placement="top"
+                                                           data-html="true"
+                                                           title="&lt;span class=&quot;app-suit-white&quot;&gt;10&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;J&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;Q&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;K&spadesuit;&lt;/span&gt;&lt;span class=&quot;app-suit-white&quot;&gt;A&spadesuit;&lt;/span&gt;">
+                                                            Royal Flush
+                                                        </a>
+                                                    </th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr data-odds-draw="1">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="2">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="3">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="4">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="5">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="6">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="7">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="8">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="9">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="10">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="11">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="12">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="13">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="14">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="15">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="16">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="17">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="18">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="19">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="20">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="21">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="22">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="23">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="24">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="25">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="26">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="27">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="28">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="29">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="30">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="31">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                <tr data-odds-draw="32">
+                                                    <td data-odds-cell="cards"></td>
+                                                    <td class="text-right" data-odds-cell="payout"></td>
+                                                    <td class="text-right" data-odds-cell="nothing"></td>
+                                                    <td class="text-right" data-odds-cell="jacksOrBetter"></td>
+                                                    <td class="text-right" data-odds-cell="twoPair"></td>
+                                                    <td class="text-right" data-odds-cell="threeOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straight"></td>
+                                                    <td class="text-right" data-odds-cell="flush"></td>
+                                                    <td class="text-right" data-odds-cell="fullHouse"></td>
+                                                    <td class="text-right" data-odds-cell="fourOfAKind"></td>
+                                                    <td class="text-right" data-odds-cell="straightFlush"></td>
+                                                    <td class="text-right" data-odds-cell="royalFlush"></td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1694,6 +2257,103 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary">Yes</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" tabindex="-1" role="dialog" data-doodad="distribution-modal">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Probability Distribution</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="app-distribution-container text-center">
+                        <img class="img-fluid" src="<%= require('./img/probability.png') %>"
+                             alt="Expected Draw Poker Hand Payouts"/>
+                    </div>
+                    <p class="text-muted text-center"><small>Red line represents the value of the player's bet. Odds not
+                            lookin' too good, are they? <i class="fas fa-poo"></i></small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" tabindex="-1" role="dialog" data-doodad="info-modal">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Move Summary</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h5>Skill</h5>
+                    <table class="table table-sm" data-table="info-skill">
+                        <tr>
+                            <td>Cards Held</td>
+                            <td class="text-right" data-info="cards-held"></td>
+                        </tr>
+                        <tr>
+                            <td>Expected Payout</td>
+                            <td class="text-right" data-info="expected-payout"></td>
+                        </tr>
+                        <tr>
+                            <td>Optimal Cards Held</td>
+                            <td class="text-right" data-info="optimal-cards-held"></td>
+                        </tr>
+                        <tr>
+                            <td>Optimal expected payout</td>
+                            <td class="text-right" data-info="optimal-expected-payout"></td>
+                        </tr>
+                        <tr>
+                            <td>Efficiency</td>
+                            <td class="text-right" data-info="efficiency"></td>
+                        </tr>
+                    </table>
+                    <h5>Luck: Initial Cards</h5>
+                    <table class="table table-sm" data-table="info-luck-cards-dealt">
+                        <tr>
+                            <td>Optimal expected payout</td>
+                            <td class="text-right" data-info="optimal-expected-payout"></td>
+                        </tr>
+                        <tr>
+                            <td>Z-Score</td>
+                            <td class="text-right" data-info="z-score"></td>
+                        </tr>
+                        <tr>
+                            <td>Percentile</td>
+                            <td class="text-right" data-info="percentile"></td>
+                        </tr>
+                    </table>
+                    <h5>Luck: Hand Dealt</h5>
+                    <table class="table table-sm" data-table="info-luck-hand-drawn">
+                        <tr>
+                            <td>Expected payout</td>
+                            <td class="text-right" data-info="expected-payout"></td>
+                        </tr>
+                        <tr>
+                            <td>Actual payout</td>
+                            <td class="text-right" data-info="actual-payout"></td>
+                        </tr>
+                        <tr>
+                            <td>Z-Score</td>
+                            <td class="text-right" data-info="z-score"></td>
+                        </tr>
+                        <tr>
+                            <td>Percentile</td>
+                            <td class="text-right" data-info="percentile"></td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

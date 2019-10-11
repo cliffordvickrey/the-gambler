@@ -8,6 +8,7 @@ import {GameUtil} from "../domain/GameUtil";
 import {SortDirection} from "./SortDirection";
 import {HighScores} from "../domain/HighScores";
 import {HighScore} from "../domain/HighScore";
+import {Analysis} from "../domain/Analysis";
 
 declare let $: JQueryStatic;
 
@@ -196,6 +197,47 @@ export class ViewModel {
         this.oddsAreOutOfOrder = true;
     }
 
+    private setAnalysis(analysis: Analysis): void {
+        let infoLink = this.dom.getInfoLink();
+        let infoView = this.dom.getInfoView();
+        Dom.showElement(infoLink, null !== analysis);
+
+        if (null === analysis) {
+            let tableNames = ["info-skill", "info-luck-cards-dealt", "info-luck-hand-drawn"];
+            tableNames.forEach(tableName => {
+                let table = infoView[tableName];
+                Object.keys(table).forEach(row => table[row].innerHTML = "");
+            });
+            return;
+        }
+
+        let optimalCardsHeld: number[] = [];
+
+        for (let ii = 0; ii < this.game.state.hand.length; ii++) {
+            if (analysis.skill.optimalDraw[ii]) {
+                optimalCardsHeld.push(this.game.state.hand[ii]);
+            }
+        }
+
+        let skillTable = infoView["info-skill"];
+        skillTable["cards-held"].innerHTML = GameUtil.cardsToHtml(this.game.state.cardsHeld);
+        skillTable["expected-payout"].innerText = analysis.skill.expectedPayout;
+        skillTable["optimal-cards-held"].innerHTML = GameUtil.cardsToHtml(optimalCardsHeld);
+        skillTable["optimal-expected-payout"].innerText = analysis.skill.optimalExpectedPayout;
+        skillTable["efficiency"].innerText = analysis.skill.efficiency;
+
+        let cardsLuckTable = infoView["info-luck-cards-dealt"];
+        cardsLuckTable["optimal-expected-payout"].innerText = analysis.cardsLuck.optimalExpectedPayout;
+        cardsLuckTable["z-score"].innerText = analysis.cardsLuck.zScore;
+        cardsLuckTable["percentile"].innerText = analysis.cardsLuck.percentile;
+
+        let handDrawnLuckTable = infoView["info-luck-hand-drawn"];
+        handDrawnLuckTable["expected-payout"].innerText = analysis.handDealtLuck.expectedPayout;
+        handDrawnLuckTable["actual-payout"].innerText = analysis.handDealtLuck.actualPayout;
+        handDrawnLuckTable["z-score"].innerText = analysis.handDealtLuck.zScore;
+        handDrawnLuckTable["percentile"].innerText = analysis.handDealtLuck.percentile;
+    }
+
     public setGame(game: Game): void {
         this.game = game;
         this.cardsHeld = [false, false, false, false, false];
@@ -213,11 +255,13 @@ export class ViewModel {
             this.dom.enableTab("odds", false);
             this.setMeta(null);
             this.resetDefaultBetAmount();
+            this.setAnalysis(null);
             return;
         }
 
         let state = game.state;
         let meta = game.meta;
+        let analysis = game.analysis;
 
         let hand: number[] = state.hand;
         let hasHand: boolean;
@@ -244,7 +288,8 @@ export class ViewModel {
             this.oddsAreStale = true;
         }
 
-        this.dom.enableTab("odds", meta.cheated && hasHand);
+        this.dom.enableTab("odds", (meta.cheated && hasHand) || (readyToBet && hasHand));
+        this.setAnalysis(analysis);
 
         let input = this.dom.getInput("amount");
 
@@ -388,28 +433,37 @@ export class ViewModel {
 
             let frequenciesView = oddsView["frequencies"][oddsKey];
             let percentagesView = oddsView["percentages"][oddsKey];
+            let percentagesRoundedView = oddsView["percentages-rounded"][oddsKey];
 
             frequenciesView["cards"].innerHTML = cardHtml;
             percentagesView["cards"].innerHTML = cardHtml;
+            percentagesRoundedView["cards"].innerHTML = cardHtml;
             frequenciesView["cards"].setAttribute("data-sort-value", String(i));
             percentagesView["cards"].setAttribute("data-sort-value", String(i));
+            percentagesRoundedView["cards"].setAttribute("data-sort-value", String(i));
 
             frequenciesView["payout"].innerText = node.meanPayout;
             percentagesView["payout"].innerText = node.meanPayout;
+            percentagesRoundedView["payout"].innerText = node.meanPayout;
 
             let meanPayout = node.meanPayout.replace(/^\$/g, "");
             frequenciesView["payout"].setAttribute("data-sort-value", meanPayout);
             percentagesView["payout"].setAttribute("data-sort-value", meanPayout);
+            percentagesRoundedView["payout"].setAttribute("data-sort-value", meanPayout);
 
             Object.keys(node.frequencies).forEach((handType: string) => {
                 let frequency = String(node.frequencies[handType]);
                 let percentage = String(node.percentages[handType]);
+                let percentageRounded = String(node.percentagesRounded[handType]);
+                let percentageNumeric = percentage.replace(/%$/g, "");
 
                 frequenciesView[handType].innerText = frequency;
                 percentagesView[handType].innerText = percentage;
+                percentagesRoundedView[handType].innerText = percentageRounded;
 
                 frequenciesView[handType].setAttribute("data-sort-value", frequency);
-                percentagesView[handType].setAttribute("data-sort-value", percentage.replace(/%$/g, ""));
+                percentagesView[handType].setAttribute("data-sort-value", percentageNumeric);
+                percentagesRoundedView[handType].setAttribute("data-sort-value", percentageNumeric);
             });
         }
 
@@ -499,10 +553,10 @@ export class ViewModel {
         return id;
     }
 
-    public showOddsView(view: "frequencies" | "percentages"): void {
-        let viewToHide = "frequencies" === view ? "percentages" : "frequencies";
-        Dom.showElement(this.dom.getTable(viewToHide), false);
-        Dom.showElement(this.dom.getTable(view), true);
+    public showOddsView(view: "frequencies" | "percentages" | "percentages-rounded"): void {
+        ["frequencies", "percentages", "percentages-rounded"].forEach(tableName => {
+            Dom.showElement(this.dom.getTable(tableName), view === tableName);
+        });
     }
 
     private setHand(hand: number[], cardsHeld: number[], cardsDealt: number[], cheated: boolean): void {

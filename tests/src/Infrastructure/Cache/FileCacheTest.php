@@ -12,7 +12,6 @@ use PHPUnit\Framework\TestCase;
 use Psr\SimpleCache\InvalidArgumentException;
 use Traversable;
 use function get_class;
-use function is_array;
 use function iterator_to_array;
 
 class FileCacheTest extends TestCase

@@ -11,13 +11,20 @@ use Cliffordvickrey\TheGambler\Domain\Game\Exception\GameException;
 use Cliffordvickrey\TheGambler\Domain\Game\Exception\GameNotFoundException;
 use Cliffordvickrey\TheGambler\Domain\Game\Repository\GameRepository;
 use Cliffordvickrey\TheGambler\Domain\Game\Repository\GameRepositoryInterface;
+use Cliffordvickrey\TheGambler\Domain\Game\Service\GameServiceInterface;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameId;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameState;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveAnalysis;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveCardsLuck;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveHandDealtLuck;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveSkill;
 use Cliffordvickrey\TheGambler\Domain\HandTypeResolver\HandTypeResolver;
 use Cliffordvickrey\TheGambler\Domain\Probability\Service\ProbabilityServiceInterface;
 use Cliffordvickrey\TheGambler\Domain\Probability\ValueObject\ProbabilityNode;
 use Cliffordvickrey\TheGambler\Domain\Probability\ValueObject\ProbabilityTree;
 use Cliffordvickrey\TheGambler\Domain\Rules\Rules;
 use Cliffordvickrey\TheGambler\Domain\Utility\HandDecorator;
+use Cliffordvickrey\TheGambler\Domain\Utility\Math;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Draw;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Hand;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\PossibleDraws;
@@ -26,6 +33,7 @@ use Cliffordvickrey\TheGambler\Infrastructure\Factory\Infrastructure\Serializer\
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use function count;
+use function floor;
 use function rand;
 use function serialize;
 
@@ -42,64 +50,79 @@ class GameRepositoryTest extends TestCase
      */
     public function setUp(): void
     {
-        $probabilityService = new class implements ProbabilityServiceInterface
+        $gameService = new class implements GameServiceInterface
         {
-            /** @var ProbabilityTree[] */
-            private $memo = [];
+            private $handTypeResolver;
             private $rules;
 
             public function __construct()
             {
+                $this->handTypeResolver = new HandTypeResolver();
                 $this->rules = Rules::fromDefaults();
             }
 
-            public function getCanonicalProbabilityTree(Hand $hand): ProbabilityTree
+            public function getStartingPurse(): int
             {
-                return new ProbabilityTree();
+                return $this->rules->getStartingPurse();
+            }
+
+            public function getDefaultBetAmount(): int
+            {
+                return $this->rules->getBetAmount();
+            }
+
+            public function analyzeMove(GameState $state, Draw $draw, int $betAmount): MoveAnalysis
+            {
+                $handType = $state->getHandType();
+                $payoutRatio = (float)($betAmount / $this->rules->getBetAmount());
+                $payout = (int)floor($this->rules->getPayoutAmount($handType) * $payoutRatio);
+
+                $expectedPayout = (float)($payoutRatio * rand(1, 5000));
+                $optimalExpectedPayout = (float)($payoutRatio * rand(1, 5000));
+
+                $skill = new MoveSkill($expectedPayout, Draw::fromId(1), $optimalExpectedPayout);
+
+                $minExpected = 0.0;
+
+                $logOptimalExpected = Math::logTransformScalar($optimalExpectedPayout, $minExpected);
+
+                $logMeanOptimalExpected = rand(1, 10);
+                $logOptimalStDev = rand(1, 10);
+
+                $cardsLuck = new MoveCardsLuck(
+                    $optimalExpectedPayout,
+                    Math::standardize($logOptimalExpected, $logMeanOptimalExpected, $logOptimalStDev)
+                );
+
+                $logPayout = Math::logTransformScalar($payout, 0.0);
+
+                $logStDev = rand(1, 10);
+                $zScore = null;
+                if (0.0 !== $logStDev) {
+                    $zScore = Math::standardize(
+                        $logPayout,
+                        rand(1, 10),
+                        $logStDev
+                    );
+                }
+
+                $handDealtLuck = new MoveHandDealtLuck($expectedPayout, $payout, $zScore);
+
+                return new MoveAnalysis($skill, $cardsLuck, $handDealtLuck);
             }
 
             public function getProbabilityTree(Hand $hand): ProbabilityTree
             {
-                $decorator = new HandDecorator($hand);
-                $hash = $decorator->getCanonicalHandTypeHash();
-                if (isset($this->memo[$hash])) {
-                    return $this->memo[$hash];
-                }
-
-                $draws = new PossibleDraws();
-                $handTypes = HandType::getEnum();
-                $nodes = [];
-                foreach ($draws as $draw) {
-                    $frequencies = [];
-                    foreach ($handTypes as $handType) {
-                        $frequencies[(string)$handType] = rand(0, 1000);
-                    }
-                    $nodes[] = new ProbabilityNode($draw, $frequencies, $this->rules);
-                }
-
-                $this->memo[$hash] = new ProbabilityTree(...$nodes);
-                return $this->memo[$hash];
+                return new ProbabilityTree();
             }
 
-            public function getMeanHighestPayout(): float
+            public function resolve(Hand $hand): HandType
             {
-                $sum = 0.0;
-                foreach ($this->memo as $tree) {
-                    $sum += $tree->getNodeWithHighestMeanPayout()->getMeanPayout();
-                }
-                return $sum / count($this->memo);
+                return $this->handTypeResolver->resolve($hand);
             }
         };
 
-        $handTypeResolver = new HandTypeResolver();
-        $rules = Rules::fromDefaults();
-
-        $this->game = new Game(
-            GameId::generate(),
-            $rules,
-            $handTypeResolver,
-            $probabilityService
-        );
+        $this->game = new Game(GameId::generate(), $gameService);
 
         $this->game->cheat();
         for ($i = 0; $i < 10; $i++) {
@@ -148,9 +171,7 @@ class GameRepositoryTest extends TestCase
 
         $this->repository = new GameRepository(
             $cache,
-            $handTypeResolver,
-            $probabilityService,
-            $rules
+            $gameService
         );
     }
 

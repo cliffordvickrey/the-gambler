@@ -4,51 +4,47 @@ declare(strict_types=1);
 
 namespace Cliffordvickrey\TheGambler\Domain\Game\Entity;
 
-use Cliffordvickrey\TheGambler\Domain\Enum\HandType;
 use Cliffordvickrey\TheGambler\Domain\Game\Exception\GameException;
+use Cliffordvickrey\TheGambler\Domain\Game\Service\GameServiceInterface;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameId;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameMeta;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameState;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveAnalysis;
-use Cliffordvickrey\TheGambler\Domain\HandTypeResolver\HandTypeResolverInterface;
-use Cliffordvickrey\TheGambler\Domain\Probability\Service\ProbabilityServiceInterface;
-use Cliffordvickrey\TheGambler\Domain\Rules\RulesInterface;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Card;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Draw;
-use Cliffordvickrey\TheGambler\Domain\ValueObject\Hand;
 use JsonSerializable;
 use LogicException;
 
 final class Game implements GameInterface, JsonSerializable
 {
     private $id;
-    private $rules;
-    private $handTypeResolver;
-    private $probabilityService;
+    private $gameService;
     private $meta;
     private $state;
+    private $analysis;
 
     public function __construct(
         GameId $id,
-        RulesInterface $rules,
-        HandTypeResolverInterface $handTypeResolver,
-        ProbabilityServiceInterface $probabilityService,
+        GameServiceInterface $gameService,
         ?GameMeta $meta = null,
-        ?GameState $state = null
+        ?GameState $state = null,
+        ?MoveAnalysis $analysis = null
     )
     {
         $this->id = $id;
-        $this->rules = $rules;
-        $this->handTypeResolver = $handTypeResolver;
-        $this->probabilityService = $probabilityService;
-        $this->meta = $meta ?? new GameMeta($rules->getStartingPurse());
+        $this->gameService = $gameService;
+        $this->meta = $meta ?? new GameMeta($gameService->getStartingPurse());
         $this->state = $state ?? new GameState();
+        $this->analysis = $analysis;
     }
 
     public function __clone()
     {
         $this->meta = clone $this->meta;
         $this->state = clone $this->state;
+        if (null !== $this->analysis) {
+            $this->analysis = clone $this->analysis;
+        }
     }
 
     /**
@@ -58,7 +54,7 @@ final class Game implements GameInterface, JsonSerializable
     public function bet(?int $amount = null): void
     {
         $cheated = $this->meta->getCheated();
-        $betAmount = $amount ?? $this->rules->getBetAmount();
+        $betAmount = $amount ?? $this->gameService->getDefaultBetAmount();
 
         if ($betAmount < 1) {
             throw new GameException('Bet amount cannot be less than $1.00');
@@ -72,6 +68,7 @@ final class Game implements GameInterface, JsonSerializable
 
         $this->state->deal($betAmount);
         $this->meta->bet($betAmount);
+        $this->analysis = null;
     }
 
     public function cheat(): void
@@ -91,30 +88,26 @@ final class Game implements GameInterface, JsonSerializable
             throw new LogicException('Cannot play; no cards dealt');
         }
 
-        $this->state->play($draw, $this->handTypeResolver);
+        $this->state->play($draw, $this->gameService);
         $betAmount = $this->state->getBetAmount();
-        $payoutRatio = (float)($betAmount / $this->rules->getBetAmount());
 
-        $handType = $this->state->getHandType() ?? new HandType(HandType::NOTHING);
+        if (null === $betAmount) {
+            throw new LogicException('Cannot play; no bet');
+        }
 
-        $payout = (int)floor($this->rules->getPayoutAmount($handType) * $payoutRatio);
-        $moveAnalysis = $this->analyzeMove($hand, $draw, $payoutRatio);
+        $this->analysis = $this->gameService->analyzeMove(
+            $this->state,
+            $draw,
+            $betAmount
+        );
 
-        $this->meta->addToPurse($payout, $moveAnalysis);
+        $this->meta->addToPurse(
+            $this->analysis->getHandDealtLuck()->getActualPayout(),
+            $this->analysis->getSkill()->getEfficiency(),
+            $this->analysis->getCardsLuck()->getPercentile()
+        );
     }
 
-    private function analyzeMove(Hand $hand, Draw $draw, float $payoutRatio): MoveAnalysis
-    {
-        $tree = $this->probabilityService->getProbabilityTree($hand);
-        $node = $tree->getNode($draw);
-        $highestNode = $tree->getNodeWithHighestMeanPayout();
-
-        $expectedAmount = $payoutRatio * $node->getMeanPayout();
-        $maxExpectedAmount = $payoutRatio * $highestNode->getMeanPayout();
-        $meanMaxExpectedAmount = $payoutRatio * $this->probabilityService->getMeanHighestPayout();
-
-        return new MoveAnalysis($expectedAmount, $maxExpectedAmount, $meanMaxExpectedAmount);
-    }
 
     /**
      * @param int $offset
@@ -161,15 +154,24 @@ final class Game implements GameInterface, JsonSerializable
 
         $cheated = $this->meta->getCheated();
         $hand = $this->state->getHand();
-        if ($cheated && null !== $hand) {
-            $probabilityTree = $this->probabilityService->getProbabilityTree($hand);
+        if (null !== $hand && ($cheated || null !== $this->state->getHandType())) {
+            $probabilityTree = $this->gameService->getProbabilityTree($hand);
         }
 
         return [
             'gameId' => $this->id,
             'meta' => $this->meta,
             'state' => $this->state,
-            'probability' => $probabilityTree
+            'probability' => $probabilityTree,
+            'analysis' => $this->analysis
         ];
+    }
+
+    /**
+     * @return MoveAnalysis|null
+     */
+    public function getAnalysis(): ?MoveAnalysis
+    {
+        return $this->analysis;
     }
 }

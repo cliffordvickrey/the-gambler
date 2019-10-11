@@ -14,4 +14,13 @@ interface ProbabilityServiceInterface
     public function getProbabilityTree(Hand $hand): ProbabilityTree;
 
     public function getMeanHighestPayout(): float;
+
+    public function getMinHighestPayout(): float;
+
+    public function getStandardDeviationOfHighestPayout(): float;
+
+    public function getLogMeanHighestPayout(): float;
+
+    public function getLogStandardDeviationOfHighestPayout(): float;
+
 }

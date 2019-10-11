@@ -164,5 +164,19 @@ export class EventBinder {
                 }
             });
         });
+
+        let infoLink = this.dom.getInfoLink();
+        infoLink.addEventListener("click", (e: Event) => {
+            $(this.dom.getDoodad("info-modal")).modal("show");
+            e.preventDefault();
+            return false;
+        });
+
+        let distributionLink = this.dom.getProbabilityDistributionLink();
+        distributionLink.addEventListener("click", (e: Event) => {
+            $(this.dom.getDoodad("distribution-modal")).modal("show");
+            e.preventDefault();
+            return false;
+        });
     }
 }

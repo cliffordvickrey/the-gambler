@@ -95,8 +95,7 @@ class CanonicalProbabilityTreeBuilder
         list ($cardIdsHeld, $cardsHeldHash) = $this->getCardIdsHeldAndCardsHeldHash($hand, $draw, $carry['hashes']);
         $cached = $carry[$cardsHeldHash] ?? null;
         if (null !== $cached) {
-            list ($frequencies, $meanPayout) = $cached;
-            return new ProbabilityNode($draw, $frequencies, $this->rules, $meanPayout);
+            return new ProbabilityNode($draw, $cached, $this->rules);
         }
 
         $frequencies = array_combine($enum, array_fill(0, count($enum), 0)) ?: [];
@@ -107,7 +106,7 @@ class CanonicalProbabilityTreeBuilder
         }
 
         $node = new ProbabilityNode($draw, $frequencies, $this->rules);
-        $carry[$cardsHeldHash] = [$frequencies, $node->getMeanPayout()];
+        $carry[$cardsHeldHash] = $frequencies;
 
         return $node;
     }

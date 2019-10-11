@@ -11,6 +11,10 @@ use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameId;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameMeta;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameState;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\HighScore;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveAnalysis;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveCardsLuck;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveHandDealtLuck;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveSkill;
 use Cliffordvickrey\TheGambler\Domain\Probability\ValueObject\ProbabilityNode;
 use Cliffordvickrey\TheGambler\Domain\Probability\ValueObject\ProbabilityTree;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Card;
@@ -37,6 +41,10 @@ class SerializerFactory implements FactoryInterface
             GameId::class,
             GameMeta::class,
             GameState::class,
+            MoveAnalysis::class,
+            MoveSkill::class,
+            MoveCardsLuck::class,
+            MoveHandDealtLuck::class,
             ProbabilityNode::class,
             ProbabilityTree::class,
             Session::class

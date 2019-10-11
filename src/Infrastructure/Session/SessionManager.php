@@ -16,7 +16,6 @@ use function session_regenerate_id;
 use function session_start;
 use function session_status;
 use function session_write_close;
-use function var_dump;
 use const PHP_SESSION_ACTIVE;
 
 class SessionManager implements SessionManagerInterface

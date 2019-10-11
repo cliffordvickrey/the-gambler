@@ -7,12 +7,11 @@ namespace Cliffordvickrey\TheGambler\Domain\Game\Repository;
 use Cliffordvickrey\TheGambler\Domain\Game\Entity\Game;
 use Cliffordvickrey\TheGambler\Domain\Game\Entity\GameInterface;
 use Cliffordvickrey\TheGambler\Domain\Game\Exception\GameNotFoundException;
+use Cliffordvickrey\TheGambler\Domain\Game\Service\GameServiceInterface;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameId;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameMeta;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameState;
-use Cliffordvickrey\TheGambler\Domain\HandTypeResolver\HandTypeResolverInterface;
-use Cliffordvickrey\TheGambler\Domain\Probability\Service\ProbabilityServiceInterface;
-use Cliffordvickrey\TheGambler\Domain\Rules\RulesInterface;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveAnalysis;
 use Psr\SimpleCache\CacheInterface;
 use Psr\SimpleCache\InvalidArgumentException;
 use RuntimeException;
@@ -23,23 +22,17 @@ use function sprintf;
 class GameRepository implements GameRepositoryInterface
 {
     private $cache;
-    private $handTypeResolver;
-    private $probabilityService;
-    private $rules;
+    private $gameService;
     private $ttl;
 
     public function __construct(
         CacheInterface $cache,
-        HandTypeResolverInterface $handTypeResolver,
-        ProbabilityServiceInterface $probabilityService,
-        RulesInterface $rules,
+        GameServiceInterface $gameService,
         ?int $ttl = null
     )
     {
         $this->cache = $cache;
-        $this->handTypeResolver = $handTypeResolver;
-        $this->probabilityService = $probabilityService;
-        $this->rules = $rules;
+        $this->gameService = $gameService;
         $this->ttl = $ttl;
     }
 
@@ -66,6 +59,7 @@ class GameRepository implements GameRepositoryInterface
 
         $meta = $saved['meta'] ?? null;
         $state = $saved['state'] ?? null;
+        $analysis = $saved['analysis'] ?? null;
 
         if (!($meta instanceof GameMeta)) {
             throw new UnexpectedValueException(sprintf('Expected instance of %s', GameMeta::class));
@@ -75,7 +69,11 @@ class GameRepository implements GameRepositoryInterface
             throw new UnexpectedValueException(sprintf('Expected instance of %s', GameState::class));
         }
 
-        return new Game($id, $this->rules, $this->handTypeResolver, $this->probabilityService, $meta, $state);
+        if (!($analysis instanceof MoveAnalysis)) {
+            $analysis = null;
+        }
+
+        return new Game($id, $this->gameService, $meta, $state, $analysis);
     }
 
     public function has(GameId $id): bool
@@ -89,7 +87,7 @@ class GameRepository implements GameRepositoryInterface
 
     public function getNew(): GameInterface
     {
-        return new Game(GameId::generate(), $this->rules, $this->handTypeResolver, $this->probabilityService);
+        return new Game(GameId::generate(), $this->gameService);
     }
 
     public function save(GameInterface $game): void
@@ -98,7 +96,8 @@ class GameRepository implements GameRepositoryInterface
 
         $toSerialize = [
             'meta' => $game->getMeta(),
-            'state' => $game->getState()
+            'state' => $game->getState(),
+            'analysis' => $game->getAnalysis()
         ];
 
         try {

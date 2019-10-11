@@ -47,6 +47,20 @@ final class GameMeta implements PortableInterface
         $this->lastPayout = $lastPayout;
     }
 
+    /**
+     * @param float|int $dividend
+     * @param float|int $divisor
+     * @return float
+     */
+    private static function safeDivision($dividend, $divisor): float
+    {
+        if (0 === $divisor || 0.0 === $divisor) {
+            return 1.0;
+        }
+
+        return (float)($dividend / $divisor);
+    }
+
     public function getTurn(): int
     {
         return $this->turn;
@@ -77,27 +91,13 @@ final class GameMeta implements PortableInterface
         $this->purse -= $amount;
     }
 
-    public function addToPurse(int $amount, MoveAnalysis $analysis): void
+    public function addToPurse(int $amount, float $efficiency, float $luck): void
     {
-        // de-structure analysis
-        $expectedAmount = $analysis->getExpectedAmount();
-        $maxExpectedAmount = $analysis->getMaxExpectedAmount();
-        $meanMaxExpectedAmount = $analysis->getMeanMaxExpectedAmount();
-
         // move efficiency: ratio of the move's expected payout vs. the maximum payout for this hand
-        if (0.0 === $expectedAmount) {
-            $numerator = $this->efficiency;
-        } else {
-            $moveEfficiency = self::safeDivision($expectedAmount, $maxExpectedAmount);
-            $numerator = (($this->efficiency * $this->turn) + $moveEfficiency);
-        }
-        $this->efficiency = $numerator / ($this->turn + 1);
+        $this->efficiency += $efficiency / ((float)$this->turn + 1.0);
 
-        // move luck: how good was the initial hand compared to every possible hand, and how good was the move's outcome
-        // compared to the expected outcome?
-        $moveLuck = (self::safeDivision($maxExpectedAmount, $meanMaxExpectedAmount) +
-                self::safeDivision($amount, $expectedAmount)) / 2;
-        $this->luck = (($this->luck * $this->turn) + $moveLuck) / ($this->turn + 1);
+        // move luck: log-adjusted Z score of quality of cards dealt
+        $this->luck += $luck / ((float)$this->turn + 1.0);
 
         $this->turn++;
         $this->purse += $amount;
@@ -106,20 +106,6 @@ final class GameMeta implements PortableInterface
         if ($this->purse > $this->highPurse) {
             $this->highPurse = $this->purse;
         }
-    }
-
-    /**
-     * @param float|int $dividend
-     * @param float|int $divisor
-     * @return float
-     */
-    private static function safeDivision($dividend, $divisor): float
-    {
-        if (0 === $divisor || 0.0 === $divisor) {
-            return 1.0;
-        }
-
-        return (float)($dividend / $divisor);
     }
 
     public function jsonSerialize(): array

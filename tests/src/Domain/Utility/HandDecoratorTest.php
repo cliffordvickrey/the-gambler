@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Tests\Cliffordvickrey\TheGambler\Domain\Util;
+namespace Tests\Cliffordvickrey\TheGambler\Domain\Utility;
 
 use Cliffordvickrey\TheGambler\Domain\Collection\CardIterator;
 use Cliffordvickrey\TheGambler\Domain\Enum\Suit;
-use Cliffordvickrey\TheGambler\Domain\Probability\Generator\CombinationGenerator;
 use Cliffordvickrey\TheGambler\Domain\Utility\HandDecorator;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Card;
-use Cliffordvickrey\TheGambler\Domain\ValueObject\Deck;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Hand;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Rank;
 use InvalidArgumentException;

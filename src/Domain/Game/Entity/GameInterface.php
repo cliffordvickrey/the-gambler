@@ -7,6 +7,7 @@ namespace Cliffordvickrey\TheGambler\Domain\Game\Entity;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameId;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameMeta;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameState;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveAnalysis;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Card;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Draw;
 
@@ -25,4 +26,6 @@ interface GameInterface
     public function getMeta(): GameMeta;
 
     public function getState(): GameState;
+
+    public function getAnalysis(): ?MoveAnalysis;
 }

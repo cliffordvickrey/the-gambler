@@ -8,24 +8,24 @@ use Cliffordvickrey\TheGambler\Domain\Collection\CardCollection;
 use Cliffordvickrey\TheGambler\Domain\Enum\HandType;
 use Cliffordvickrey\TheGambler\Domain\Game\Entity\Game;
 use Cliffordvickrey\TheGambler\Domain\Game\Entity\GameInterface;
+use Cliffordvickrey\TheGambler\Domain\Game\Service\GameServiceInterface;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameId;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\GameState;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveAnalysis;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveCardsLuck;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveHandDealtLuck;
+use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveSkill;
 use Cliffordvickrey\TheGambler\Domain\HandTypeResolver\HandTypeResolver;
-use Cliffordvickrey\TheGambler\Domain\Probability\Service\ProbabilityServiceInterface;
-use Cliffordvickrey\TheGambler\Domain\Probability\ValueObject\ProbabilityNode;
 use Cliffordvickrey\TheGambler\Domain\Probability\ValueObject\ProbabilityTree;
 use Cliffordvickrey\TheGambler\Domain\Rules\Rules;
-use Cliffordvickrey\TheGambler\Domain\Rules\RulesInterface;
-use Cliffordvickrey\TheGambler\Domain\Utility\HandDecorator;
+use Cliffordvickrey\TheGambler\Domain\Utility\Math;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Deck;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Draw;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Hand;
-use Cliffordvickrey\TheGambler\Domain\ValueObject\PossibleDraws;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use UnexpectedValueException;
-use function count;
-use function get_class;
+use function floor;
 use function is_iterable;
 use function rand;
 
@@ -33,76 +33,86 @@ class GameTest extends TestCase
 {
     /** @var GameInterface */
     private $game;
-    /** @var HandTypeResolver */
-    private $handTypeResolver;
-    /** @var ProbabilityServiceInterface */
-    private $probabilityService;
-    /** @var RulesInterface */
-    private $rules;
+    /** @var GameServiceInterface */
+    private $gameService;
 
     public function setUp(): void
     {
-        $handTypeResolver = new HandTypeResolver();
-        $this->handTypeResolver = $handTypeResolver;
-
-        $probabilityService = new class implements ProbabilityServiceInterface
+        $this->gameService = new class implements GameServiceInterface
         {
-            /** @var ProbabilityTree[] */
-            private $memo = [];
+            private $handTypeResolver;
             private $rules;
 
             public function __construct()
             {
+                $this->handTypeResolver = new HandTypeResolver();
                 $this->rules = Rules::fromDefaults();
             }
 
-            public function getCanonicalProbabilityTree(Hand $hand): ProbabilityTree
+            public function getStartingPurse(): int
             {
-                return new ProbabilityTree();
+                return $this->rules->getStartingPurse();
+            }
+
+            public function getDefaultBetAmount(): int
+            {
+                return $this->rules->getBetAmount();
+            }
+
+            public function analyzeMove(GameState $state, Draw $draw, int $betAmount): MoveAnalysis
+            {
+                $handType = $state->getHandType();
+                $payoutRatio = (float)($betAmount / $this->rules->getBetAmount());
+                $payout = (int)floor($this->rules->getPayoutAmount($handType) * $payoutRatio);
+
+                $expectedPayout = (float)($payoutRatio * rand(1, 5000));
+                $optimalExpectedPayout = (float)($payoutRatio * rand(1, 5000));
+
+                $skill = new MoveSkill($expectedPayout, Draw::fromId(1), $optimalExpectedPayout);
+
+                $minExpected = 0.0;
+
+                $logOptimalExpected = Math::logTransformScalar($optimalExpectedPayout, $minExpected);
+
+                $logMeanOptimalExpected = rand(1, 10);
+                $logOptimalStDev = rand(1, 10);
+
+                $cardsLuck = new MoveCardsLuck(
+                    $optimalExpectedPayout,
+                    Math::standardize($logOptimalExpected, $logMeanOptimalExpected, $logOptimalStDev)
+                );
+
+                $logPayout = Math::logTransformScalar($payout, 0.0);
+
+                $logStDev = rand(1, 10);
+                $zScore = null;
+                if (0.0 !== $logStDev) {
+                    $zScore = Math::standardize(
+                        $logPayout,
+                        rand(1, 10),
+                        $logStDev
+                    );
+                }
+
+                $handDealtLuck = new MoveHandDealtLuck($expectedPayout, $payout, $zScore);
+
+                return new MoveAnalysis($skill, $cardsLuck, $handDealtLuck);
             }
 
             public function getProbabilityTree(Hand $hand): ProbabilityTree
             {
-                $decorator = new HandDecorator($hand);
-                $hash = $decorator->getCanonicalHandTypeHash();
-                if (isset($this->memo[$hash])) {
-                    return $this->memo[$hash];
-                }
-
-                $draws = new PossibleDraws();
-                $handTypes = HandType::getEnum();
-                $nodes = [];
-                foreach ($draws as $draw) {
-                    $frequencies = [];
-                    foreach ($handTypes as $handType) {
-                        $frequencies[(string)$handType] = rand(0, 1000);
-                    }
-                    $nodes[] = new ProbabilityNode($draw, $frequencies, $this->rules);
-                }
-
-                $this->memo[$hash] = new ProbabilityTree(...$nodes);
-                return $this->memo[$hash];
+                return new ProbabilityTree();
             }
 
-            public function getMeanHighestPayout(): float
+            public function resolve(Hand $hand): HandType
             {
-                $sum = 0.0;
-                foreach ($this->memo as $tree) {
-                    $sum += $tree->getNodeWithHighestMeanPayout()->getMeanPayout();
-                }
-                return $sum / count($this->memo);
+                return $this->handTypeResolver->resolve($hand);
             }
         };
 
-        $this->rules = Rules::fromDefaults();
-
-        $this->probabilityService = $probabilityService;
-
         $this->game = new Game(
             GameId::generate(),
-            Rules::fromDefaults(),
-            $this->handTypeResolver,
-            $this->probabilityService
+            $this->gameService
         );
     }
 
@@ -227,52 +237,28 @@ class GameTest extends TestCase
     public function testPlay(): void
     {
         $state = $this->game->getState();
-        $meta = $this->game->getMeta();
 
         for ($i = 0; $i < 10; $i++) {
             $this->game->bet();
             $drawId = rand(Draw::MIN_ID, Draw::MAX_ID);
             $draw = Draw::fromId($drawId);
 
-            $moveAnalysis = $this->analyzeMove($state->getHand() ?? new Hand(), $draw);
-            $expectedAmount = $moveAnalysis->getExpectedAmount();
-            $maxExpectedAmount = $moveAnalysis->getMaxExpectedAmount();
-            $meanMaxExpectedAmount = $moveAnalysis->getMeanMaxExpectedAmount();
-
-            $oldPurse = $meta->getPurse();
-            $oldTurn = $meta->getTurn();
-            $oldLuck = $meta->getLuck();
-            $oldEfficiency = $meta->getEfficiency();
-            $turn = $meta->getTurn();
-            $moveEfficiency = $expectedAmount / $maxExpectedAmount;
-            $expectedEfficiency = (($oldEfficiency * $turn) + $moveEfficiency) / ($turn + 1);
+            $analysis = $this->game->getAnalysis();
+            $this->assertNull($analysis);
 
             $this->game->play($draw);
 
             $hand = $state->getHand();
             $cardsHeld = $state->getCardsHeld();
             $cardsDealt = $state->getCardsDealt();
-            $handType = $state->getHandType() ?? new HandType(HandType::NOTHING);
-            $amount = $this->rules->getPayoutAmount($handType);
-            $expectedPurse = $oldPurse + $amount;
-
-            $moveLuck = (self::safeDivision($maxExpectedAmount, $meanMaxExpectedAmount) +
-                    self::safeDivision($amount, $expectedAmount)) / 2;
-            $expectedLuck = (($oldLuck * $oldTurn) + $moveLuck) / ($oldTurn + 1);
-
-            $efficiency = $meta->getEfficiency();
-            $this->assertEquals($expectedEfficiency, $efficiency);
-
-            $luck = $meta->getLuck();
-            $this->assertEquals($expectedLuck, $luck);
-
-            $purse = $meta->getPurse();
-            $this->assertEquals($expectedPurse, $purse);
+            $handType = $state->getHandType();
+            $analysis = $this->game->getAnalysis();
 
             $this->assertInstanceOf(Hand::class, $hand);
             $this->assertInstanceOf(CardCollection::class, $cardsHeld);
             $this->assertInstanceOf(CardCollection::class, $cardsDealt);
             $this->assertInstanceOf(HandType::class, $handType);
+            $this->assertInstanceOf(MoveAnalysis::class, $analysis);
 
             if (!is_iterable($cardsDealt) || !is_iterable($cardsHeld)) {
                 throw new RuntimeException('Expected iterable collection');
@@ -287,35 +273,8 @@ class GameTest extends TestCase
             }
 
             $this->assertTrue($newHand->isValid());
-            $newHandType = $this->handTypeResolver->resolve($newHand);
+            $newHandType = $this->gameService->resolve($newHand);
             $this->assertEquals((string)$newHandType, (string)$handType);
         }
-    }
-
-    private function analyzeMove(Hand $hand, Draw $draw): MoveAnalysis
-    {
-        $tree = $this->probabilityService->getProbabilityTree($hand);
-        $node = $tree->getNode($draw);
-        $highestNode = $tree->getNodeWithHighestMeanPayout();
-
-        $expectedAmount = $node->getMeanPayout();
-        $maxExpectedAmount = $highestNode->getMeanPayout();
-        $meanMaxExpectedAmount = $this->probabilityService->getMeanHighestPayout();
-
-        return new MoveAnalysis($expectedAmount, $maxExpectedAmount, $meanMaxExpectedAmount);
-    }
-
-    /**
-     * @param float|int $dividend
-     * @param float|int $divisor
-     * @return float
-     */
-    private static function safeDivision($dividend, $divisor): float
-    {
-        if (0 === $divisor || 0.0 === $divisor) {
-            return 1.0;
-        }
-
-        return (float)($dividend / $divisor);
     }
 }

@@ -7,6 +7,7 @@ export class Dom {
     private cardViews: CardView[] = null;
     private confirmationModals: { [key: string]: HTMLDivElement } = {};
     private doodads: { [key: string]: NodeListOf<HTMLDivElement | HTMLSpanElement> } = {};
+    private infoView: TableView = null;
     private inputs: { [key: string]: HTMLInputElement } = {};
     private gameLog: HTMLDivElement = null;
     private gameView: HTMLDivElement = null;
@@ -53,6 +54,43 @@ export class Dom {
         return;
     }
 
+    public getInfoLink(): HTMLAnchorElement
+    {
+        return <HTMLAnchorElement>document.getElementById("app-info");
+    }
+
+    public getProbabilityDistributionLink(): HTMLAnchorElement
+    {
+        return <HTMLAnchorElement>document.getElementById("app-probability-distribution");
+    }
+
+    public getInfoView(): TableView
+    {
+        if (null !== this.infoView) {
+            return this.infoView;
+        }
+
+        let tableNames = ["info-skill", "info-luck-cards-dealt", "info-luck-hand-drawn"];
+        let infoView: TableView = {};
+
+        tableNames.forEach(tableName => {
+            infoView[tableName] = {};
+
+            let table = this.getTable(tableName);
+            let tableRows = <NodeListOf<HTMLTableRowElement>>table.querySelectorAll("tr");
+
+            for (let i = 0; i < tableRows.length; i++) {
+                let tableRow = tableRows.item(i);
+                let tableCells = <NodeListOf<HTMLTableCellElement>>tableRow.querySelectorAll("td");
+                let tableCell = tableCells.item(1);
+                infoView[tableName][tableCell.getAttribute("data-info")] = tableCell;
+            }
+        });
+
+        this.infoView = infoView;
+        return infoView;
+    }
+
     public getSortIcons(): HTMLCollection
     {
         return document.getElementsByClassName("app-sort-icon");
@@ -60,7 +98,7 @@ export class Dom {
 
     public getOddsView(): OddsView {
         if (null === this.oddsView) {
-            let tableNames: string[] = ["frequencies", "percentages"];
+            let tableNames: string[] = ["frequencies", "percentages", "percentages-rounded"];
             let oddsView: OddsView = {};
 
             tableNames.forEach(tableName => {

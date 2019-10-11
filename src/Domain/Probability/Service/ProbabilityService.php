@@ -11,6 +11,7 @@ use Cliffordvickrey\TheGambler\Domain\Probability\ValueObject\ProbabilityNode;
 use Cliffordvickrey\TheGambler\Domain\Probability\ValueObject\ProbabilityTree;
 use Cliffordvickrey\TheGambler\Domain\Rules\RulesInterface;
 use Cliffordvickrey\TheGambler\Domain\Utility\HandDecorator;
+use Cliffordvickrey\TheGambler\Domain\Utility\Math;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Deck;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Draw;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Hand;
@@ -22,6 +23,7 @@ use function array_combine;
 use function array_keys;
 use function is_float;
 use function md5;
+use function min;
 use function range;
 use function serialize;
 use function sprintf;
@@ -29,13 +31,18 @@ use const PHP_SAPI;
 
 class ProbabilityService implements ProbabilityServiceInterface
 {
+    const LOG_MEAN_PAYOUT_CACHE_KEY = 'logMeanPayout';
+    const LOG_ST_DEV_PAYOUT_CACHE_KEY = 'logStDev';
     const MEAN_PAYOUT_CACHE_KEY = 'meanPayout';
+    const MIN_PAYOUT_CACHE_KEY = 'minPayout';
+    const ST_DEV_PAYOUT_CACHE_KEY = 'stDev';
 
     private $cache;
     private $handTypeResolver;
     private $rules;
     private $treeBuilder;
     private $possibleDraws;
+    private $payouts;
 
     public function __construct(
         CacheInterface $cache, HandTypeResolverInterface $handTypeResolver, RulesInterface $rules
@@ -145,20 +152,48 @@ class ProbabilityService implements ProbabilityServiceInterface
         return $node->withDraw($draw);
     }
 
-    public function getMeanHighestPayout(): float
+    public function getStandardDeviationOfHighestPayout(): float
     {
-        $cached = $this->resolveMeanHighestPayoutFromCache();
+        $cached = $this->resolveStDevHighestPayoutFromCache();
         if (is_float($cached)) {
             return $cached;
         }
 
-        self::assertCli();
+        $payouts = $this->getPayouts();
+        $stDev = Math::stDev($payouts);
+        $this->persistStDevHighestPayoutToCache($stDev);
+        return $stDev;
+    }
 
+    public function getLogStandardDeviationOfHighestPayout(): float
+    {
+        $cached = $this->resolveLogStDevHighestPayoutFromCache();
+        if (is_float($cached)) {
+            return $cached;
+        }
+
+        $payouts = $this->getPayouts();
+        $stDev = Math::stDev(Math::logTransform($payouts));
+        $this->persistLogStDevHighestPayoutToCache($stDev);
+        return $stDev;
+    }
+
+    /**
+     * @return float[]
+     */
+    private function getPayouts(): array
+    {
+        if (null !== $this->payouts) {
+            return $this->payouts;
+        }
+
+
+        self::assertCli();
         $deck = new Deck();
         $generator = (new CombinationGenerator())($deck, Hand::HAND_SIZE);
 
-        $sum = 0.0;
         $memo = [];
+        $payouts = [];
         foreach ($generator as $cards) {
             $hand = new Hand(...$cards);
             $handDecorator = new HandDecorator($hand);
@@ -170,12 +205,81 @@ class ProbabilityService implements ProbabilityServiceInterface
                 $memo[$hash] = $node->getMeanPayout();
             }
 
-            $sum += $memo[$hash];
+            $payouts[] = $memo[$hash];
         }
 
-        $meanPayout = (float)($sum / 2598960);
-        $this->persistMeanHighestPayoutToCache($meanPayout);
-        return $meanPayout;
+        $this->payouts = $payouts;
+        return $payouts;
+    }
+
+    private function resolveStDevHighestPayoutFromCache(): ?float
+    {
+        try {
+            $cached = $this->cache->get(self::ST_DEV_PAYOUT_CACHE_KEY . md5(serialize($this->rules->toArray())));
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException(sprintf('There was a caching error: %s', $e->getMessage()));
+        }
+
+        if (is_float($cached)) {
+            return $cached;
+        }
+
+        return null;
+    }
+
+    public function getMeanHighestPayout(): float
+    {
+        $cached = $this->resolveMeanHighestPayoutFromCache();
+        if (is_float($cached)) {
+            return $cached;
+        }
+
+        self::assertCli();
+
+        $payouts = $this->getPayouts();
+        $mean = Math::mean($payouts);
+        $this->persistMeanHighestPayoutToCache($mean);
+        return $mean;
+    }
+
+
+    public function getMinHighestPayout(): float
+    {
+        $cached = $this->resolveMinHighestPayoutFromCache();
+        if (is_float($cached)) {
+            return $cached;
+        }
+
+        self::assertCli();
+
+        $payouts = $this->getPayouts();
+        $mean = min($payouts);
+        $this->persistMinHighestPayoutToCache($mean);
+        return $mean;
+    }
+
+    public function getLogMeanHighestPayout(): float
+    {
+        $cached = $this->resolveLogMeanHighestPayoutFromCache();
+        if (is_float($cached)) {
+            return $cached;
+        }
+
+        self::assertCli();
+
+        $payouts = $this->getPayouts();
+        $mean = Math::mean(Math::logTransform($payouts));
+        $this->persistLogMeanHighestPayoutToCache($mean);
+        return $mean;
+    }
+
+    private function persistMeanHighestPayoutToCache(float $meanPayout): void
+    {
+        try {
+            $this->cache->set(self::MEAN_PAYOUT_CACHE_KEY . md5(serialize($this->rules->toArray())), $meanPayout);
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException(sprintf('There was a caching error: %s', $e->getMessage()));
+        }
     }
 
     private function resolveMeanHighestPayoutFromCache(): ?float
@@ -193,12 +297,87 @@ class ProbabilityService implements ProbabilityServiceInterface
         return null;
     }
 
-    private function persistMeanHighestPayoutToCache(float $meanPayout): void
+    private function persistMinHighestPayoutToCache(float $minPayout): void
     {
         try {
-            $this->cache->set(self::MEAN_PAYOUT_CACHE_KEY . md5(serialize($this->rules->toArray())), $meanPayout);
+            $this->cache->set(self::MIN_PAYOUT_CACHE_KEY . md5(serialize($this->rules->toArray())), $minPayout);
         } catch (InvalidArgumentException $e) {
             throw new RuntimeException(sprintf('There was a caching error: %s', $e->getMessage()));
         }
+    }
+
+    private function resolveMinHighestPayoutFromCache(): ?float
+    {
+        try {
+            $cached = $this->cache->get(self::MIN_PAYOUT_CACHE_KEY . md5(serialize($this->rules->toArray())));
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException(sprintf('There was a caching error: %s', $e->getMessage()));
+        }
+
+        if (is_float($cached)) {
+            return $cached;
+        }
+
+        return null;
+    }
+
+
+    private function persistStDevHighestPayoutToCache(float $stDevPayout): void
+    {
+        try {
+            $this->cache->set(
+                self::ST_DEV_PAYOUT_CACHE_KEY . md5(serialize($this->rules->toArray())), $stDevPayout
+            );
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException(sprintf('There was a caching error: %s', $e->getMessage()));
+        }
+    }
+
+    private function persistLogMeanHighestPayoutToCache(float $logMeanPayout): void
+    {
+        try {
+            $this->cache->set(self::LOG_MEAN_PAYOUT_CACHE_KEY . md5(serialize($this->rules->toArray())), $logMeanPayout);
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException(sprintf('There was a caching error: %s', $e->getMessage()));
+        }
+    }
+
+    private function resolveLogMeanHighestPayoutFromCache(): ?float
+    {
+        try {
+            $cached = $this->cache->get(self::LOG_MEAN_PAYOUT_CACHE_KEY . md5(serialize($this->rules->toArray())));
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException(sprintf('There was a caching error: %s', $e->getMessage()));
+        }
+
+        if (is_float($cached)) {
+            return $cached;
+        }
+
+        return null;
+    }
+
+    private function persistLogStDevHighestPayoutToCache(float $logStDevPayout): void
+    {
+        try {
+            $this->cache->set(self::LOG_ST_DEV_PAYOUT_CACHE_KEY . md5(serialize($this->rules->toArray())), $logStDevPayout);
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException(sprintf('There was a caching error: %s', $e->getMessage()));
+        }
+    }
+
+    private function resolveLogStDevHighestPayoutFromCache(): ?float
+    {
+        try {
+            $cached = $this->cache->get(self::LOG_ST_DEV_PAYOUT_CACHE_KEY . md5(serialize($this->rules->toArray())));
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException(sprintf('There was a caching error: %s', $e->getMessage()));
+        }
+
+        if (is_float($cached)) {
+            return $cached;
+        }
+
+        return null;
     }
 }
