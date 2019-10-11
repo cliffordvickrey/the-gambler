@@ -168,6 +168,7 @@ export class EventBinder {
         let infoLink = this.dom.getInfoLink();
         infoLink.addEventListener("click", (e: Event) => {
             $(this.dom.getDoodad("info-modal")).modal("show");
+            this.observable.notify(EventType.analyze);
             e.preventDefault();
             return false;
         });

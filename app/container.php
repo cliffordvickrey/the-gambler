@@ -70,12 +70,12 @@ return (function () {
             $factory = new GameCacheFactory();
             return $factory($container);
         },
-        GameServiceInterface::class => function (ContainerInterface $container) {
-            $factory = new GameServiceFactory();
-            return $factory($container);
-        },
         GameRepositoryInterface::class => function (ContainerInterface $container) {
             $factory = new GameRepositoryFactory();
+            return $factory($container);
+        },
+        GameServiceInterface::class => function (ContainerInterface $container) {
+            $factory = new GameServiceFactory();
             return $factory($container);
         },
         HandTypeResolverInterface::class => function (ContainerInterface $container) {
