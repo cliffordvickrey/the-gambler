@@ -82,8 +82,10 @@ export class Dom {
             for (let i = 0; i < tableRows.length; i++) {
                 let tableRow = tableRows.item(i);
                 let tableCells = <NodeListOf<HTMLTableCellElement>>tableRow.querySelectorAll("td");
-                let tableCell = tableCells.item(1);
-                infoView[tableName][tableCell.getAttribute("data-info")] = tableCell;
+                if (0 !== tableCells.length) {
+                    let tableCell = tableCells.item(1);
+                    infoView[tableName][tableCell.getAttribute("data-info")] = tableCell;
+                }
             }
         });
 
