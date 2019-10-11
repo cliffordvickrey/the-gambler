@@ -94,10 +94,10 @@ final class GameMeta implements PortableInterface
     public function addToPurse(int $amount, float $efficiency, float $luck): void
     {
         // move efficiency: ratio of the move's expected payout vs. the maximum payout for this hand
-        $this->efficiency += $efficiency / ((float)$this->turn + 1.0);
+        $this->efficiency = (($this->efficiency * $this->turn) + $efficiency) / ((float)$this->turn + 1.0);
 
         // move luck: log-adjusted Z score of quality of cards dealt
-        $this->luck += $luck / ((float)$this->turn + 1.0);
+        $this->luck = (($this->luck * $this->turn) + $luck) / ((float)$this->turn + 1.0);
 
         $this->turn++;
         $this->purse += $amount;
