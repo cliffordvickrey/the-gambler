@@ -12,6 +12,13 @@ use Slim\Routing\RouteContext;
 
 class BindRoutingArgumentsMiddleware implements MiddlewareInterface
 {
+    private $apiRoot;
+
+    public function __construct(string $apiRoot = '')
+    {
+        $this->apiRoot = $apiRoot;
+    }
+
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $routeContext = RouteContext::fromRequest($request);
@@ -27,7 +34,7 @@ class BindRoutingArgumentsMiddleware implements MiddlewareInterface
             $request = $request->withAttribute($key, $value);
         }
 
-        if ('/' === $route->getPattern()) {
+        if (($this->apiRoot . '/') === $route->getPattern()) {
             $request = $request->withAttribute(GameResolvingMiddleware::ATTRIBUTE_RESOLVE_GAME_FROM_SESSION, true);
         }
 

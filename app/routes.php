@@ -17,36 +17,40 @@ use Cliffordvickrey\TheGambler\Api\Middleware\UpdateHighScoresMiddleware;
 use Slim\App;
 
 return function (App $app) {
-    $app->get('/', GameHandler::class);
+    /** @var array $config */
+    $config = $app->getContainer()->get('config');
+    $apiRoot = $config['apiRoot'] ?? '';
 
-    $app->get('/rules', RulesHandler::class);
+    $app->get($apiRoot . '/', GameHandler::class);
 
-    $app->get('/high-scores[/{gameId}]', HighScoresHandler::class);
+    $app->get($apiRoot . '/rules', RulesHandler::class);
 
-    $app->post('/authenticate/{playerName}', GameHandler::class)
+    $app->get($apiRoot . '/high-scores[/{gameId}]', HighScoresHandler::class);
+
+    $app->post($apiRoot . '/authenticate/{playerName}', GameHandler::class)
         ->add(AuthenticationMiddleware::class);
 
-    $app->post('/new-game', GameHandler::class)
+    $app->post($apiRoot . '/new-game', GameHandler::class)
         ->add(NewGameMiddleware::class);
 
-    $app->post('/bet/{gameId}/{amount:\d+}', GameHandler::class)
+    $app->post($apiRoot . '/bet/{gameId}/{amount:\d+}', GameHandler::class)
         ->add(UpdateHighScoresMiddleware::class)
         ->add(SaveGameMiddleware::class)
         ->add(BetMiddleware::class);
 
-    $app->post('/play/{gameId}/{draw:\d+}', GameHandler::class)
+    $app->post($apiRoot . '/play/{gameId}/{draw:\d+}', GameHandler::class)
         ->add(UpdateHighScoresMiddleware::class)
         ->add(SaveGameMiddleware::class)
         ->add(PlayMiddleware::class);
 
-    $app->post('/cheat/{gameId}', GameHandler::class)
+    $app->post($apiRoot . '/cheat/{gameId}', GameHandler::class)
         ->add(SaveGameMiddleware::class)
         ->add(CheatMiddleware::class);
 
-    $app->post('/splice/{gameId}/{cardOffset:\d+}/{newCardId:\d+}', GameHandler::class)
+    $app->post($apiRoot . '/splice/{gameId}/{cardOffset:\d+}/{newCardId:\d+}', GameHandler::class)
         ->add(SaveGameMiddleware::class)
         ->add(SpliceHandMiddleware::class);
 
-    $app->post('/destroy/{gameId}', GameHandler::class)
+    $app->post($apiRoot . '/destroy/{gameId}', GameHandler::class)
         ->add(DestroyGameMiddleware::class);
 };

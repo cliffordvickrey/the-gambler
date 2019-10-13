@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Cliffordvickrey\TheGambler\Api\Handler\HighScoresHandler;
 use Cliffordvickrey\TheGambler\Api\Handler\RulesHandler;
 use Cliffordvickrey\TheGambler\Api\Middleware\AuthenticationMiddleware;
+use Cliffordvickrey\TheGambler\Api\Middleware\BindRoutingArgumentsMiddleware;
 use Cliffordvickrey\TheGambler\Api\Middleware\DestroyGameMiddleware;
 use Cliffordvickrey\TheGambler\Api\Middleware\ErrorHandlingMiddleware;
 use Cliffordvickrey\TheGambler\Api\Middleware\GarbageCollectionMiddleware;
@@ -22,6 +23,7 @@ use Cliffordvickrey\TheGambler\Infrastructure\Cache\ProbabilityTreeCacheInterfac
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Api\Handler\HighScoresHandlerFactory;
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Api\Handler\RulesHandlerFactory;
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Api\Middleware\AuthenticationMiddlewareFactory;
+use Cliffordvickrey\TheGambler\Infrastructure\Factory\Api\Middleware\BindRoutingArgumentsMiddlewareFactory;
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Api\Middleware\DestroyGameMiddlewareFactory;
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Api\Middleware\ErrorHandlingMiddlewareFactory;
 use Cliffordvickrey\TheGambler\Infrastructure\Factory\Api\Middleware\GarbageCollectionMiddlewareFactory;
@@ -52,6 +54,10 @@ return (function () {
         'config' => $config,
         AuthenticationMiddleware::class => function (ContainerInterface $container) {
             $factory = new AuthenticationMiddlewareFactory();
+            return $factory($container);
+        },
+        BindRoutingArgumentsMiddleware::class => function (ContainerInterface $container) {
+            $factory = new BindRoutingArgumentsMiddlewareFactory();
             return $factory($container);
         },
         DestroyGameMiddleware::class => function (ContainerInterface $container) {

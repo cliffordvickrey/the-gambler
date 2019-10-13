@@ -522,6 +522,8 @@ export class ViewModel {
 
         Dom.showElement(spinner, !loaded);
         Dom.showElement(gameView, loaded);
+
+        this.dom.getSelect("odds").value = "percentages-rounded";
     }
 
     public showSpinner(show: boolean): void {

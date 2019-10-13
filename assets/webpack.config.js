@@ -10,6 +10,11 @@ const path = require("path");
 const TerserWebpackPlugin = require("terser-webpack-plugin");
 const webpack = require("webpack");
 
+let apiRoot = process.env.apiRoot;
+if ("undefined" === typeof apiRoot) {
+    apiRoot = "";
+}
+
 const webPackPromise = new Promise((resolve, reject) => {
     glob("../public/vendor/vendor.*.js", (err, files) => {
         if (0 === files.length) {
@@ -50,6 +55,9 @@ const webPackPromise = new Promise((resolve, reject) => {
                     }
                 }),
                 new CleanWebpackPlugin(),
+                new webpack.DefinePlugin({
+                    __API_ROOT__: JSON.stringify(apiRoot)
+                }),
                 new webpack.DllReferencePlugin({
                     context: ".",
                     manifest: require(path.resolve(__dirname, "./dll/vendor.manifest.json"))

@@ -26,6 +26,12 @@ class GameService implements GameServiceInterface
     private $probabilityService;
     private $rules;
 
+    /** @var HandType[] */
+    private $handTypeMemo = [];
+
+    /** @var ProbabilityTree[] */
+    private $probabilityTreeMemo = [];
+
     public function __construct(
         HandTypeResolverInterface $handTypeResolver,
         ProbabilityServiceInterface $probabilityService,
@@ -102,11 +108,21 @@ class GameService implements GameServiceInterface
 
     public function resolve(Hand $hand): HandType
     {
-        return $this->handTypeResolver->resolve($hand);
+        $handScalar = (string)$hand;
+        if (!isset($this->handTypeMemo[$handScalar])) {
+            $this->handTypeMemo[$handScalar] = $this->handTypeResolver->resolve($hand);
+        }
+
+        return $this->handTypeMemo[$handScalar];
     }
 
     public function getProbabilityTree(Hand $hand): ProbabilityTree
     {
-        return $this->probabilityService->getProbabilityTree($hand);
+        $handScalar = (string)$hand;
+        if (!isset($this->handTypeMemo[$handScalar])) {
+            $this->probabilityTreeMemo[$handScalar] = $this->probabilityService->getProbabilityTree($hand);
+        }
+
+        return $this->probabilityTreeMemo[$handScalar];
     }
 }

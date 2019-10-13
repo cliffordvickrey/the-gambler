@@ -8,6 +8,7 @@ use Cliffordvickrey\TheGambler\Domain\Game\Repository\HighScoresRepositoryInterf
 use Cliffordvickrey\TheGambler\Infrastructure\Cache\FileCache;
 
 return [
+    'apiRoot' => '',
     'debug' => false,
     FileCache::class => [
         'root' => __DIR__ . '/../../poker-cache'
