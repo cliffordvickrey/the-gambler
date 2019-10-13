@@ -3,5 +3,6 @@ export interface ProbabilityNode {
     frequencies: {[key: string]: number},
     percentages: {[key: string]: number},
     percentagesRounded: {[key: string]: number},
-    meanPayout: string
+    meanPayout: string,
+    meanPayoutRounded: string
 }

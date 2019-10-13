@@ -442,9 +442,20 @@ export class ViewModel {
             percentagesView["cards"].setAttribute("data-sort-value", String(i));
             percentagesRoundedView["cards"].setAttribute("data-sort-value", String(i));
 
-            frequenciesView["payout"].innerText = node.meanPayout;
-            percentagesView["payout"].innerText = node.meanPayout;
-            percentagesRoundedView["payout"].innerText = node.meanPayout;
+            let toolTip = <HTMLAnchorElement>document.createElement("a");
+            toolTip.href = "#";
+            toolTip.title = node.meanPayout;
+            toolTip.innerText = node.meanPayoutRounded;
+            toolTip.setAttribute("data-toggle", "tooltip");
+            toolTip.setAttribute("data-payout-tooltip", "1");
+
+            frequenciesView["payout"].innerHTML = "";
+            percentagesView["payout"].innerHTML = "";
+            percentagesRoundedView["payout"].innerHTML = "";
+
+            frequenciesView["payout"].appendChild(toolTip.cloneNode(true));
+            percentagesView["payout"].appendChild(toolTip.cloneNode(true));
+            percentagesRoundedView["payout"].appendChild(toolTip.cloneNode(true));
 
             let meanPayout = node.meanPayout.replace(/^\$/g, "");
             frequenciesView["payout"].setAttribute("data-sort-value", meanPayout);
@@ -466,6 +477,8 @@ export class ViewModel {
                 percentagesRoundedView[handType].setAttribute("data-sort-value", percentageNumeric);
             });
         }
+
+        $("[data-payout-tooltip='1']").tooltip();
 
         this.oddsAreStale = false;
     }

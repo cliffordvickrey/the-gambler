@@ -34,6 +34,7 @@ class ProbabilityNode implements PortableInterface
     private $rules;
     private $meanPayout;
     private $meanPayoutDollarAmount;
+    private $meanPayoutDollarAmountRounded;
     private $minPayout;
     private $standardDeviation;
     private $logMeanPayout;
@@ -76,6 +77,7 @@ class ProbabilityNode implements PortableInterface
         $percentagesRounded = $unSerialized['percentagesRounded'] ?? null;
         $meanPayout = $unSerialized['meanPayout'] ?? null;
         $meanPayoutDollarAmount = $unSerialized['meanPayoutDollarAmount'] ?? null;
+        $meanPayoutDollarAmountRounded = $unSerialized['meanPayoutDollarAmountRounded'] ?? null;
         $minPayout = $unSerialized['minPayout'] ?? null;
         $standardDeviation = $unSerialized['standardDeviation'] ?? null;
         $logMeanPayout = $unSerialized['logMeanPayout'] ?? null;
@@ -126,6 +128,10 @@ class ProbabilityNode implements PortableInterface
             $this->meanPayoutDollarAmount = $meanPayoutDollarAmount;
         }
 
+        if (is_string($meanPayoutDollarAmountRounded)) {
+            $this->meanPayoutDollarAmountRounded = $meanPayoutDollarAmountRounded;
+        }
+
         $this->standardDeviation = $standardDeviation;
         $this->logMeanPayout = $logMeanPayout;
         $this->logStandardDeviation = $logStandardDeviation;
@@ -156,6 +162,7 @@ class ProbabilityNode implements PortableInterface
                 'percentagesRounded' => $this->getPercentagesRounded(),
                 'meanPayout' => $this->getMeanPayout(),
                 'meanPayoutDollarAmount' => $this->getMeanPayoutDollarAmount(),
+                'meanPayoutDollarAmountRounded' => $this->getMeanPayoutDollarAmountRounded(),
                 'minPayout' => $this->getMinPayout(),
                 'standardDeviation' => $this->getStandardDeviation(),
                 'logMeanPayout' => $this->getLogMeanPayout(),
@@ -254,6 +261,21 @@ class ProbabilityNode implements PortableInterface
         return $meanPayoutDollarAmount;
     }
 
+    /**
+     * @return string
+     */
+    public function getMeanPayoutDollarAmountRounded(): string
+    {
+        if (null !== $this->meanPayoutDollarAmountRounded) {
+            return $this->meanPayoutDollarAmountRounded;
+        }
+
+        $meanPayout = $this->getMeanPayout();
+        $meanPayoutDollarAmountRounded = Format::dollarFormat($meanPayout, 2);
+        $this->meanPayoutDollarAmountRounded = $meanPayoutDollarAmountRounded;
+        return $meanPayoutDollarAmountRounded;
+    }
+
     public function getMinPayout(): float
     {
         if (null !== $this->minPayout) {
@@ -301,7 +323,8 @@ class ProbabilityNode implements PortableInterface
             'frequencies' => $this->frequencies,
             'percentages' => $this->getPercentages(),
             'percentagesRounded' => $this->getPercentagesRounded(),
-            'meanPayout' => $this->getMeanPayoutDollarAmount()
+            'meanPayout' => $this->getMeanPayoutDollarAmount(),
+            'meanPayoutRounded' => $this->getMeanPayoutDollarAmountRounded()
         ];
     }
 }
