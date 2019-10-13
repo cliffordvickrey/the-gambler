@@ -119,7 +119,7 @@ class GameService implements GameServiceInterface
     public function getProbabilityTree(Hand $hand): ProbabilityTree
     {
         $handScalar = (string)$hand;
-        if (!isset($this->handTypeMemo[$handScalar])) {
+        if (!isset($this->probabilityTreeMemo[$handScalar])) {
             $this->probabilityTreeMemo[$handScalar] = $this->probabilityService->getProbabilityTree($hand);
         }
 
