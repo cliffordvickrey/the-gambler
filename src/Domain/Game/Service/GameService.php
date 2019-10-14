@@ -88,6 +88,7 @@ class GameService implements GameServiceInterface
         $logOptimalStDev = $this->probabilityService->getLogStandardDeviationOfHighestPayout();
 
         $cardsLuck = new MoveCardsLuck(
+            self::buildResultString($this->resolve($hand), $this->probabilityService->getRootProbabilityNode()),
             $optimalExpectedPayout,
             Math::standardize($logOptimalExpected, $logMeanOptimalExpected, $logOptimalStDev)
         );

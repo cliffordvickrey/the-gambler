@@ -81,6 +81,7 @@ class HighScoresRepositoryTest extends TestCase
                 $logOptimalStDev = rand(1, 10);
 
                 $cardsLuck = new MoveCardsLuck(
+                    'Blah',
                     $optimalExpectedPayout,
                     Math::standardize($logOptimalExpected, $logMeanOptimalExpected, $logOptimalStDev)
                 );

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Cliffordvickrey\TheGambler\Domain\Enum\HandType;
 use Cliffordvickrey\TheGambler\Domain\Probability\Service\ProbabilityServiceInterface;
 use Psr\Container\ContainerInterface;
 
@@ -39,3 +40,9 @@ echo sprintf(
     PHP_EOL
 );
 
+$node = $probabilityService->getRootProbabilityNode();
+echo sprintf('The root probabilities of each hand type are as follows:%s', PHP_EOL);
+$handTypes = HandType::getEnum();
+foreach ($handTypes as $handType) {
+    echo sprintf('%s: %s%s', (string)$handType, $node->getPercentages()[(string)$handType], PHP_EOL);
+}

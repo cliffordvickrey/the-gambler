@@ -6,6 +6,7 @@ export class Analysis {
         efficiency: string;
     };
     cardsLuck: {
+        result: string,
         optimalExpectedPayout: string;
         cardsLuck: string;
         zScore: string;

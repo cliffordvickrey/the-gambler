@@ -9,18 +9,26 @@ use Cliffordvickrey\TheGambler\Domain\Utility\Format;
 use Cliffordvickrey\TheGambler\Domain\Utility\Math;
 use UnexpectedValueException;
 use function is_float;
+use function is_string;
 use function serialize;
 use function unserialize;
 
 class MoveCardsLuck implements PortableInterface
 {
+    private $result;
     private $optimalExpectedPayout;
     private $zScore;
 
-    public function __construct(float $optimalExpectedPayout, float $zScore)
+    public function __construct(string $result, float $optimalExpectedPayout, float $zScore)
     {
+        $this->result = $result;
         $this->optimalExpectedPayout = $optimalExpectedPayout;
         $this->zScore = $zScore;
+    }
+
+    public function getResult(): string
+    {
+        return $this->result;
     }
 
     /**
@@ -42,6 +50,7 @@ class MoveCardsLuck implements PortableInterface
     public function jsonSerialize()
     {
         return [
+            'result' => $this->result,
             'optimalExpectedPayout' => Format::dollarFormat($this->optimalExpectedPayout, 2),
             'zScore' => Format::numberFormat($this->zScore, 2),
             'percentile' => Format::percentFormatRounded($this->getPercentile())
@@ -56,6 +65,7 @@ class MoveCardsLuck implements PortableInterface
     public function serialize()
     {
         return serialize([
+            'result' => $this->result,
             'optimalExpectedPayout' => $this->optimalExpectedPayout,
             'zScore' => $this->zScore
         ]);
@@ -64,6 +74,11 @@ class MoveCardsLuck implements PortableInterface
     public function unserialize($serialized)
     {
         $unSerialized = unserialize($serialized, ['allowed_classes' => false]);
+
+        $result = $unSerialized['result'] ?? null;
+        if (!is_string($result)) {
+            throw new UnexpectedValueException('Expected string');
+        }
 
         $optimalExpectedPayout = $unSerialized['optimalExpectedPayout'] ?? null;
         if (!is_float($optimalExpectedPayout)) {
@@ -75,6 +90,7 @@ class MoveCardsLuck implements PortableInterface
             throw new UnexpectedValueException('Expected float');
         }
 
+        $this->result = $result;
         $this->optimalExpectedPayout = $optimalExpectedPayout;
         $this->zScore = $zScore;
     }

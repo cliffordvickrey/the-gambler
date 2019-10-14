@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cliffordvickrey\TheGambler\Domain\Probability\Service;
 
+use Cliffordvickrey\TheGambler\Domain\Enum\HandType;
 use Cliffordvickrey\TheGambler\Domain\HandTypeResolver\HandTypeResolverInterface;
 use Cliffordvickrey\TheGambler\Domain\Probability\Generator\CombinationGenerator;
 use Cliffordvickrey\TheGambler\Domain\Probability\Utility\CanonicalProbabilityTreeBuilder;
@@ -20,7 +21,9 @@ use Psr\SimpleCache\CacheInterface;
 use Psr\SimpleCache\InvalidArgumentException;
 use RuntimeException;
 use function array_combine;
+use function array_fill;
 use function array_keys;
+use function count;
 use function is_float;
 use function md5;
 use function min;
@@ -35,6 +38,7 @@ class ProbabilityService implements ProbabilityServiceInterface
     const LOG_ST_DEV_PAYOUT_CACHE_KEY = 'logStDev';
     const MEAN_PAYOUT_CACHE_KEY = 'meanPayout';
     const MIN_PAYOUT_CACHE_KEY = 'minPayout';
+    const ROOT_NODE_CACHE_KEY = 'rootNode';
     const ST_DEV_PAYOUT_CACHE_KEY = 'stDev';
 
     private $cache;
@@ -379,5 +383,62 @@ class ProbabilityService implements ProbabilityServiceInterface
         }
 
         return null;
+    }
+
+    private function persistRootProbabilityNodeHighestPayoutToCache(ProbabilityNode $node): void
+    {
+        try {
+            $this->cache->set(self::ROOT_NODE_CACHE_KEY . md5(serialize($this->rules->toArray())), $node);
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException(sprintf('There was a caching error: %s', $e->getMessage()));
+        }
+    }
+
+    private function resolveRootProbabilityNodeHighestPayoutFromCache(): ?ProbabilityNode
+    {
+        try {
+            $cached = $this->cache->get(self::ROOT_NODE_CACHE_KEY . md5(serialize($this->rules->toArray())));
+        } catch (InvalidArgumentException $e) {
+            throw new RuntimeException(sprintf('There was a caching error: %s', $e->getMessage()));
+        }
+
+        if ($cached instanceof ProbabilityNode) {
+            return $cached;
+        }
+
+        return null;
+    }
+    
+    public function getRootProbabilityNode(): ProbabilityNode
+    {
+        $cached = $this->resolveRootProbabilityNodeHighestPayoutFromCache();
+        if ($cached instanceof ProbabilityNode) {
+            return $cached;
+        }
+
+        self::assertCli();
+
+        $deck = new Deck();
+        $generator = (new CombinationGenerator())($deck, Hand::HAND_SIZE);
+
+        $enum = HandType::getEnum();
+        $frequencies = array_combine($enum, array_fill(0, count($enum), 0)) ?: [];
+        /** @var HandType[] $memo */
+        $memo = [];
+        foreach ($generator as $cards) {
+            $hand = new Hand(...$cards);
+            $handDecorator = new HandDecorator($hand);
+            $hash = $handDecorator->getCanonicalHandTypeHash();
+            $handType = $memo[$hash] ?? null;
+            if (null === $handType) {
+                $handType = $this->handTypeResolver->resolve($hand);
+                $memo[$hash] = $handType;
+            }
+            $frequencies[(string)$handType]++;
+        }
+
+        $node = new ProbabilityNode(Draw::fromId(1), $frequencies, $this->rules);
+        $this->persistRootProbabilityNodeHighestPayoutToCache($node);
+        return $node;
     }
 }

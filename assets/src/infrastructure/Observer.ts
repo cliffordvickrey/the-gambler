@@ -210,7 +210,7 @@ export class Observer implements ObserverInterface {
         return new Promise<void>((resolve, reject) => {
             this.api.spliceCard(gameId, offset, card).then(
                 (httpResponse: HttpResponse) => {
-                    this.viewModel.setGame(httpResponse.game);
+                    this.viewModel.setGame(httpResponse.game, true);
                     resolve();
                 },
                 (err) => reject(err)

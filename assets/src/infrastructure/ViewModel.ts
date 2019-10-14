@@ -227,6 +227,7 @@ export class ViewModel {
         skillTable["efficiency"].innerText = analysis.skill.efficiency;
 
         let cardsLuckTable = infoView["info-luck-cards-dealt"];
+        cardsLuckTable["result"].innerText = analysis.cardsLuck.result;
         cardsLuckTable["optimal-expected-payout"].innerText = analysis.cardsLuck.optimalExpectedPayout;
         cardsLuckTable["z-score"].innerText = analysis.cardsLuck.zScore;
         cardsLuckTable["percentile"].innerText = analysis.cardsLuck.percentile;
@@ -239,9 +240,11 @@ export class ViewModel {
         handDrawnLuckTable["percentile"].innerText = analysis.handDealtLuck.percentile;
     }
 
-    public setGame(game: Game): void {
+    public setGame(game: Game, preserveCardsHeld: boolean = false): void {
         this.game = game;
-        this.cardsHeld = [false, false, false, false, false];
+        if (!preserveCardsHeld) {
+            this.cardsHeld = [false, false, false, false, false];
+        }
 
         let hasGame = null !== game;
 
@@ -276,7 +279,7 @@ export class ViewModel {
         let turnComplete = null !== state.handType;
         let readyToBet = !hasHand || turnComplete;
 
-        this.setHand(hand, state.cardsHeld, state.cardsDealt, meta.cheated);
+        this.setHand(hand, state.cardsHeld, state.cardsDealt, meta.cheated, preserveCardsHeld);
         this.setMeta(meta);
 
         this.dom.showButton("bet", readyToBet);
@@ -575,7 +578,13 @@ export class ViewModel {
         });
     }
 
-    private setHand(hand: number[], cardsHeld: number[], cardsDealt: number[], cheated: boolean): void {
+    private setHand(
+        hand: number[],
+        cardsHeld: number[],
+        cardsDealt: number[],
+        cheated: boolean,
+        preserveCardsHeld: boolean
+    ): void {
         let cardsToSplice: number[] = [];
         let readyToPlay = null === cardsHeld;
         if (!readyToPlay) {
@@ -593,7 +602,7 @@ export class ViewModel {
             cardView.card.setAttribute("data-playable", playable ? "1" : "0");
             let held = cardView.draw.classList.contains("fas");
 
-            if (readyToPlay && held) {
+            if (readyToPlay && held && !preserveCardsHeld) {
                 cardView.draw.classList.remove("fas");
                 cardView.draw.classList.add("far");
             } else if (!readyToPlay) {
