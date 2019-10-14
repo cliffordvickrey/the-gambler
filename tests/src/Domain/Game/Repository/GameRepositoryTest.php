@@ -106,7 +106,7 @@ class GameRepositoryTest extends TestCase
                     );
                 }
 
-                $handDealtLuck = new MoveHandDealtLuck($expectedPayout, $payout, $zScore);
+                $handDealtLuck = new MoveHandDealtLuck('Blah', $expectedPayout, $payout, $zScore);
 
                 return new MoveAnalysis($skill, $cardsLuck, $handDealtLuck);
             }

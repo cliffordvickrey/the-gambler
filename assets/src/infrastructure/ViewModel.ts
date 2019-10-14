@@ -220,9 +220,9 @@ export class ViewModel {
         }
 
         let skillTable = infoView["info-skill"];
-        skillTable["cards-held"].innerHTML = GameUtil.cardsToHtml(this.game.state.cardsHeld);
+        skillTable["cards-held"].innerHTML = GameUtil.cardsToHtml(this.game.state.cardsHeld, false);
         skillTable["expected-payout"].innerText = analysis.skill.expectedPayout;
-        skillTable["optimal-cards-held"].innerHTML = GameUtil.cardsToHtml(optimalCardsHeld);
+        skillTable["optimal-cards-held"].innerHTML = GameUtil.cardsToHtml(optimalCardsHeld, false);
         skillTable["optimal-expected-payout"].innerText = analysis.skill.optimalExpectedPayout;
         skillTable["efficiency"].innerText = analysis.skill.efficiency;
 
@@ -232,6 +232,7 @@ export class ViewModel {
         cardsLuckTable["percentile"].innerText = analysis.cardsLuck.percentile;
 
         let handDrawnLuckTable = infoView["info-luck-hand-drawn"];
+        handDrawnLuckTable["result"].innerText = analysis.handDealtLuck.result;
         handDrawnLuckTable["expected-payout"].innerText = analysis.handDealtLuck.expectedPayout;
         handDrawnLuckTable["actual-payout"].innerText = analysis.handDealtLuck.actualPayout;
         handDrawnLuckTable["z-score"].innerText = analysis.handDealtLuck.zScore;

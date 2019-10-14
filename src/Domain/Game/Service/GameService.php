@@ -12,6 +12,7 @@ use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveHandDealtLuck;
 use Cliffordvickrey\TheGambler\Domain\Game\ValueObject\MoveSkill;
 use Cliffordvickrey\TheGambler\Domain\HandTypeResolver\HandTypeResolverInterface;
 use Cliffordvickrey\TheGambler\Domain\Probability\Service\ProbabilityServiceInterface;
+use Cliffordvickrey\TheGambler\Domain\Probability\ValueObject\ProbabilityNode;
 use Cliffordvickrey\TheGambler\Domain\Probability\ValueObject\ProbabilityTree;
 use Cliffordvickrey\TheGambler\Domain\Rules\RulesInterface;
 use Cliffordvickrey\TheGambler\Domain\Utility\Math;
@@ -19,6 +20,8 @@ use Cliffordvickrey\TheGambler\Domain\ValueObject\Draw;
 use Cliffordvickrey\TheGambler\Domain\ValueObject\Hand;
 use UnexpectedValueException;
 use function floor;
+use function sprintf;
+use function strtolower;
 
 class GameService implements GameServiceInterface
 {
@@ -101,9 +104,19 @@ class GameService implements GameServiceInterface
             );
         }
 
-        $handDealtLuck = new MoveHandDealtLuck($expectedPayout, $payout, $zScore);
+        $result = self::buildResultString($handType, $node);
+        $handDealtLuck = new MoveHandDealtLuck($result, $expectedPayout, $payout, $zScore);
 
         return new MoveAnalysis($skill, $cardsLuck, $handDealtLuck);
+    }
+
+    private static function buildResultString(HandType $handType, ProbabilityNode $node): string
+    {
+        $handTypeScalar = (string)$handType;
+        $descriptions = HandType::getDescriptions();
+        $percentages = $node->getPercentagesRounded();
+        $percentage = $percentages[$handTypeScalar];
+        return sprintf('%s (%s)', strtolower($descriptions[$handTypeScalar]), $percentage);
     }
 
     public function resolve(Hand $hand): HandType

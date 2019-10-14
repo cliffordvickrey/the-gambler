@@ -12,6 +12,7 @@ export class Analysis {
         percentile: string;
     };
     handDealtLuck: {
+        result: string,
         expectedPayout: string;
         actualPayout: string;
         zScore: string;
