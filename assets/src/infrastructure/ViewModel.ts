@@ -526,6 +526,12 @@ export class ViewModel {
 
         let alertContainer = document.getElementById("app-alert-container");
         alertContainer.innerHTML = html;
+
+        setTimeout(() => window.scroll({
+            top: 0,
+            left: 0,
+            behavior: "smooth"
+        }), 100);
     }
 
     public clearAlerts(): void {
